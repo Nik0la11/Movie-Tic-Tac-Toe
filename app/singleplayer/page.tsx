@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { useEffect } from "react";
+import { generateRandomGrid } from "@/utils/tmdb";
 
 interface Cell {
   id: number;
@@ -26,6 +28,16 @@ const SinglePlayerGame = () => {
     console.log(`Kliknuto je polje sa ID: ${cellId}`);
   };
 
+  useEffect(() => {
+    async function testAPI() {
+      console.log("Zapocinjem generisanje grida: ");
+      const res = await generateRandomGrid();
+      console.log(res);
+    }
+
+    testAPI();
+  }, []);
+
   return (
     <div className="flex flex-col items-center justiy-center min-h-screen bg-slate-950">
       {/* Header */}
@@ -42,7 +54,7 @@ const SinglePlayerGame = () => {
         {columns.map((col, index) => (
           <div
             key={index}
-            className="bg-transparent flex items-center justify-center p-4 break-words leading-tight text-l"
+            className="bg-transparent flex items-center justify-center p-4 break-words leading-tight text-l text-center"
           >
             {col}
           </div>
@@ -50,7 +62,7 @@ const SinglePlayerGame = () => {
 
         {rows.map((rowName, rowIndex) => (
           <React.Fragment key={rowIndex}>
-            <div className="bg-transparent flex items-center justify-center p-4 break-words leading-tight aspect-[2/3] text-l">
+            <div className="bg-transparent flex items-center justify-center p-4 break-words leading-tight aspect-[2/3] text-l text-center">
               {rowName}
             </div>
 
