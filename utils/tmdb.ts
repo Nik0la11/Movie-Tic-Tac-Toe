@@ -10,7 +10,7 @@ async function fetchFromTMDB(endpoint: string, params = "") {
 export async function generateRandomGrid() {
   try {
     const randomPage = Math.floor(Math.random() * 50) + 1;
-    console.log(process);
+
     const discoverData = await fetchFromTMDB(
       `/discover/movie`,
       `&sort_by=popularity.desc&vote_count.gte=5000&page=${randomPage}&include_adult=false`
@@ -18,7 +18,7 @@ export async function generateRandomGrid() {
 
     const shuffledMovies = discoverData.results
       .sort(() => 0.5 - Math.random())
-      .slice(0, 9);
+      .slice(0, 20);
 
     const moviesDatabase = [];
 
@@ -58,6 +58,10 @@ export async function generateRandomGrid() {
         });
       }
     }
+
+    console.log(moviesDatabase);
+
+    const moviesOnDiagonal = moviesDatabase.slice(0, 3);
 
     const rowInfo = [];
     const colInfo = [];
