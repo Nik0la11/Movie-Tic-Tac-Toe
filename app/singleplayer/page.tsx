@@ -15,6 +15,11 @@ const SinglePlayerGame = () => {
   const columns = ["Leonardo Di Caprio", "Brad Pitt", "Decade: 1990"];
   const rows = ["Christopher Nolan", "Oppenheimer", "David Fincher"];
 
+  const [gridData, setGridData] = useState<{
+    rows: string[];
+    cols: string[];
+  } | null>(null);
+
   const [cells, setCells] = useState<Cell[]>(
     Array.from({ length: 9 }, (_, index) => ({
       id: index,
@@ -29,19 +34,24 @@ const SinglePlayerGame = () => {
   };
 
   useEffect(() => {
-    async function testAPI() {
+    function testAPI() {
       console.log("Zapocinjem generisanje grida: ");
-      const res = await generateRandomGrid();
-      console.log(res);
+      const res = generateRandomGrid();
+      console.log(`kolone: ${res?.cols}, redovi: ${res?.rows}`);
+      setGridData(res as { rows: string[]; cols: string[] });
     }
 
     testAPI();
   }, []);
 
+  if (!gridData) {
+    return <div className="h-screen overflow-hidden"></div>;
+  }
+
   return (
-    <div className="flex flex-col items-center justiy-center min-h-screen bg-slate-950">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950">
       {/* Header */}
-      <header className="text-center mb-10 p-3 border-b w-full">
+      <header className="text-center mb-5 p-3 border-b w-full">
         <h1 className="text-2xl font-extrabold tracking-tighter">
           Movie Tic - Tac - Toe
         </h1>
@@ -51,19 +61,19 @@ const SinglePlayerGame = () => {
       <div className="grid grid-cols-4 gap-1 max-w-md w-full mx-auto md:ml-122">
         <div className="bg-transparent p-4"></div>
 
-        {columns.map((col, index) => (
+        {gridData?.cols.map((col: string, index: number) => (
           <div
             key={index}
-            className="bg-transparent flex items-center justify-center p-4 break-words leading-tight text-l text-center"
+            className="bg-transparent flex items-center justify-center p-4 break-words leading-tight text-l text-center "
           >
-            {col}
+            {col.split(":")[1]}
           </div>
         ))}
 
-        {rows.map((rowName, rowIndex) => (
+        {gridData?.rows.map((rowName: string, rowIndex: number) => (
           <React.Fragment key={rowIndex}>
-            <div className="bg-transparent flex items-center justify-center p-4 break-words leading-tight aspect-[2/3] text-l text-center">
-              {rowName}
+            <div className="bg-transparent flex items-center justify-center p-4 break-words leading-tight aspect-[2/3] text-l text-center ">
+              {rowName.split(":")[1]}
             </div>
 
             {[0, 1, 2].map((colIndex) => {

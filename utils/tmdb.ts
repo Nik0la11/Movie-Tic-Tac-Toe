@@ -1,94 +1,92 @@
-/*async function fetchFromTMDB(endpoint: string, params = "") {
-  const res = await fetch(
-    `/api/movies?endpoint=${encodeURIComponent(
-      endpoint
-    )}&params=${encodeURIComponent(params)}`
-  );
-  return res.json();
+import indexData from "@/public/movies-index.json";
+
+const index = indexData as Record<string, number[]>;
+
+function haveSameMovie(key1: string, key2: string): boolean {
+  const ids1 = index[key1];
+  const ids2 = index[key2];
+
+  return ids1.some((id) => ids2.includes(id));
 }
-
-export async function generateRandomGrid() {
-  try {
-    const randomPage = Math.floor(Math.random() * 50) + 1;
-
-    const discoverData = await fetchFromTMDB(
-      `/discover/movie`,
-      `&sort_by=popularity.desc&vote_count.gte=5000&page=${randomPage}&include_adult=false`
-    );
-
-    const shuffledMovies = discoverData.results
-      .sort(() => 0.5 - Math.random())
-      .slice(0, 20);
-
-    const moviesDatabase = [];
-
-    for (const movie of shuffledMovies) {
-      const movieDetails = await fetchFromTMDB(`/movie/${movie.id}`);
-      console.log(movieDetails);
-      const credistData = await fetchFromTMDB(`/movie/${movie.id}/credits`);
-      //console.log(credistData);
-      const releaseYear = movieDetails.release_date
-        ? parseInt(movieDetails.release_date.split("-")[0])
-        : null;
-
-      const releaseDecade = releaseYear
-        ? `${Math.floor(releaseYear / 10) * 10}s`
-        : null;
-
-      console.log(releaseDecade);
-
-      const genres = movieDetails.genres.map((g: any) => g.name);
-      const director = credistData.crew.find(
-        (member: any) => member.job === "Director"
-      )?.name;
-      console.log(director);
-
-      const topActors = credistData.cast
-        .slice(0, 5)
-        .map((actor: any) => actor.name);
-      console.log(topActors);
-
-      if (releaseYear && genres.length > 0) {
-        moviesDatabase.push({
-          title: movieDetails.title,
-          year: releaseYear.toString(),
-          decade: releaseDecade,
-          director: director,
-          actors: topActors,
-        });
-      }
-    }
-
-    console.log(moviesDatabase);
-
-    const moviesOnDiagonal = moviesDatabase.slice(0, 3);
-
-    const rowInfo = [];
-    const colInfo = [];
-  } catch (err) {
-    console.error("Greska pri generisanju grida: ", err);
-    return null;
-  }
-}
-*/
-
-import moviesData from "@/public/top-rated-movies.json";
-
-interface Movie {
-  id: number;
-  title: string;
-  year: number;
-  decade: string;
-  director: string;
-  genres: string[];
-  actors: string[];
-}
-
-const movies = moviesData as Movie[];
 
 export function generateRandomGrid() {
-  console.log(movies.length);
-  for (const movie of movies) {
-    console.log(movie.title);
+  const allKeys = Object.keys(index);
+
+  const allActors = allKeys.filter((k) => k.startsWith("actor"));
+  const allDirectors = allKeys.filter((k) => k.startsWith("director"));
+  const allGenres = allKeys.filter((k) => k.startsWith("genre"));
+  const allDecades = allKeys.filter((k) => k.startsWith("decade"));
+
+  let maxAttempts = 20;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const rows: string[] = [];
+
+    while (rows.length < 3) {
+      const randomKey =
+        Math.random() > 0.5
+          ? allGenres[Math.floor(Math.random() * allGenres.length)]
+          : allDecades[Math.floor(Math.random() * allDecades.length)];
+
+      if (!rows.includes(randomKey)) rows.push(randomKey);
+    }
+    /*
+    const moviesInRows = new Set([
+      ...(index[rows[0]] || []),
+      ...(index[rows[1]] || []),
+      ...(index[rows[2]] || []),
+    ]);
+*/
+    const cols: string[] = [];
+
+    const validColsForThisRows = allKeys.filter((key) => {
+      if (!key.startsWith("actor") && !key.startsWith("director")) return false;
+
+      const theirMovies = index[key];
+
+      const hasRow0 = theirMovies.some((movie) =>
+        index[rows[0]].includes(movie)
+      );
+
+      const hasRow1 = theirMovies.some((movie) =>
+        index[rows[1]].includes(movie)
+      );
+
+      const hasRow2 = theirMovies.some((movie) =>
+        index[rows[2]].includes(movie)
+      );
+
+      return hasRow0 && hasRow1 && hasRow2;
+    });
+
+    if (validColsForThisRows.length < 3) continue;
+
+    while (cols.length < 3) {
+      const randomKey =
+        validColsForThisRows[
+          Math.floor(Math.random() * validColsForThisRows.length)
+        ];
+
+      if (!cols.includes(randomKey)) cols.push(randomKey);
+    }
+
+    let gridIsValid = true;
+
+    for (const r of rows) {
+      for (const c of cols) {
+        if (!haveSameMovie(r, c)) {
+          gridIsValid = false;
+          break;
+        }
+      }
+      if (!gridIsValid) break;
+    }
+
+    if (gridIsValid) return { rows, cols };
   }
+
+  return {
+    rows: ["genre:Action", "genre:Drama", "genre:Thriller"],
+    cols: ["actor:Brad Pitt", "actor:Tom Cruise", "actor:Leonardo DiCaprio"],
+  };
 }

@@ -27,16 +27,16 @@ movies.forEach((movie) => {
   };
 
   movie.actors.forEach((actor) => {
-    addToIndex(actor);
+    addToIndex(`actor:${actor}`);
   });
 
   movie.genres.forEach((genre) => {
-    addToIndex(genre);
+    addToIndex(`genre:${genre}`);
   });
 
-  addToIndex(movie.decade);
+  addToIndex(`decade:${movie.decade}`);
 
-  addToIndex(movie.director);
+  addToIndex(`director:${movie.director}`);
 
   console.log(`Obradjen je film ${movie.title}`);
 });

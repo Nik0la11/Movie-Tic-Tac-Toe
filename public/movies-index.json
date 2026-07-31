@@ -1,21 +1,21 @@
 {
-  "Tim Robbins": [
+  "actor:Tim Robbins": [
     278,
     322
   ],
-  "Morgan Freeman": [
+  "actor:Morgan Freeman": [
     278,
     807,
     70,
     33
   ],
-  "Bob Gunton": [
+  "actor:Bob Gunton": [
     278
   ],
-  "William Sadler": [
+  "actor:William Sadler": [
     278
   ],
-  "Drama": [
+  "genre:Drama": [
     278,
     238,
     240,
@@ -154,7 +154,7 @@
     1579,
     329865
   ],
-  "Crime": [
+  "genre:Crime": [
     278,
     238,
     240,
@@ -200,7 +200,7 @@
     414906,
     522627
   ],
-  "1990s": [
+  "decade:1990s": [
     278,
     424,
     497,
@@ -245,29 +245,29 @@
     812,
     137
   ],
-  "Frank Darabont": [
+  "director:Frank Darabont": [
     278,
     497
   ],
-  "Marlon Brando": [
+  "actor:Marlon Brando": [
     238,
     28
   ],
-  "Al Pacino": [
+  "actor:Al Pacino": [
     238,
     240,
     111,
     949
   ],
-  "James Caan": [
+  "actor:James Caan": [
     238,
     1700
   ],
-  "Robert Duvall": [
+  "actor:Robert Duvall": [
     238,
     240
   ],
-  "1970s": [
+  "decade:1970s": [
     238,
     240,
     510,
@@ -281,26 +281,26 @@
     9552,
     578
   ],
-  "Francis Ford Coppola": [
+  "director:Francis Ford Coppola": [
     238,
     240,
     28
   ],
-  "Ryan Gosling": [
+  "actor:Ryan Gosling": [
     687163,
     313369,
     11036
   ],
-  "Sandra Hüller": [
+  "actor:Sandra Hüller": [
     687163
   ],
-  "James Ortiz": [
+  "actor:James Ortiz": [
     687163
   ],
-  "Lionel Boyce": [
+  "actor:Lionel Boyce": [
     687163
   ],
-  "Sci-Fi": [
+  "genre:Sci-Fi": [
     687163,
     157336,
     324857,
@@ -349,7 +349,7 @@
     76341,
     329865
   ],
-  "Adventure": [
+  "genre:Adventure": [
     687163,
     122,
     157336,
@@ -422,7 +422,7 @@
     76341,
     76341
   ],
-  "2020s": [
+  "decade:2020s": [
     687163,
     569094,
     1184918,
@@ -446,13 +446,13 @@
     508439,
     792307
   ],
-  "Phil Lord": [
+  "director:Phil Lord": [
     687163
   ],
-  "Diane Keaton": [
+  "actor:Diane Keaton": [
     240
   ],
-  "Robert De Niro": [
+  "actor:Robert De Niro": [
     240,
     769,
     311,
@@ -462,23 +462,23 @@
     949,
     117
   ],
-  "Liam Neeson": [
+  "actor:Liam Neeson": [
     424,
     272
   ],
-  "Ben Kingsley": [
+  "actor:Ben Kingsley": [
     424,
     11324
   ],
-  "Ralph Fiennes": [
+  "actor:Ralph Fiennes": [
     424,
     12445,
     120467
   ],
-  "Caroline Goodall": [
+  "actor:Caroline Goodall": [
     424
   ],
-  "History": [
+  "genre:History": [
     424,
     857,
     490132,
@@ -497,7 +497,7 @@
     45269,
     1579
   ],
-  "War": [
+  "genre:War": [
     424,
     12477,
     423,
@@ -515,7 +515,7 @@
     1417,
     792
   ],
-  "Steven Spielberg": [
+  "director:Steven Spielberg": [
     424,
     857,
     640,
@@ -524,47 +524,47 @@
     89,
     578
   ],
-  "Martin Balsam": [
+  "actor:Martin Balsam": [
     389
   ],
-  "John Fiedler": [
+  "actor:John Fiedler": [
     389
   ],
-  "Lee J. Cobb": [
+  "actor:Lee J. Cobb": [
     389
   ],
-  "E.G. Marshall": [
+  "actor:E.G. Marshall": [
     389
   ],
-  "1950s": [
+  "decade:1950s": [
     389,
     567,
     426
   ],
-  "Sidney Lumet": [
+  "director:Sidney Lumet": [
     389
   ],
-  "Christian Bale": [
+  "actor:Christian Bale": [
     155,
     1124,
     359724,
     49026,
     272
   ],
-  "Heath Ledger": [
+  "actor:Heath Ledger": [
     155,
     142
   ],
-  "Aaron Eckhart": [
+  "actor:Aaron Eckhart": [
     155
   ],
-  "Michael Caine": [
+  "actor:Michael Caine": [
     155,
     157336,
     1124,
     272
   ],
-  "Action": [
+  "genre:Action": [
     155,
     122,
     120,
@@ -623,7 +623,7 @@
     76341,
     76341
   ],
-  "Thriller": [
+  "genre:Thriller": [
     155,
     496243,
     680,
@@ -672,7 +672,7 @@
     414906,
     766507
   ],
-  "2000s": [
+  "decade:2000s": [
     155,
     129,
     122,
@@ -737,7 +737,7 @@
     1726,
     1579
   ],
-  "Christopher Nolan": [
+  "director:Christopher Nolan": [
     155,
     157336,
     27205,
@@ -747,19 +747,19 @@
     49026,
     272
   ],
-  "Rumi Hiiragi": [
+  "actor:Rumi Hiiragi": [
     129
   ],
-  "Miyu Irino": [
+  "actor:Miyu Irino": [
     129
   ],
-  "Mari Natsuki": [
+  "actor:Mari Natsuki": [
     129
   ],
-  "Takashi Naito": [
+  "actor:Takashi Naito": [
     129
   ],
-  "Animation": [
+  "genre:Animation": [
     129,
     372058,
     12477,
@@ -799,7 +799,7 @@
     812,
     508439
   ],
-  "Family": [
+  "genre:Family": [
     129,
     1184918,
     8587,
@@ -835,7 +835,7 @@
     812,
     508439
   ],
-  "Fantasy": [
+  "genre:Fantasy": [
     129,
     497,
     122,
@@ -876,13 +876,13 @@
     508439,
     137
   ],
-  "Hayao Miyazaki": [
+  "director:Hayao Miyazaki": [
     129,
     4935,
     128,
     8392
   ],
-  "Tom Hanks": [
+  "actor:Tom Hanks": [
     497,
     13,
     857,
@@ -891,55 +891,55 @@
     10193,
     8358
   ],
-  "David Morse": [
+  "actor:David Morse": [
     497
   ],
-  "Bonnie Hunt": [
+  "actor:Bonnie Hunt": [
     497
   ],
-  "Michael Clarke Duncan": [
+  "actor:Michael Clarke Duncan": [
     497
   ],
-  "Elijah Wood": [
+  "actor:Elijah Wood": [
     122,
     120,
     121
   ],
-  "Ian McKellen": [
+  "actor:Ian McKellen": [
     122,
     120,
     121
   ],
-  "Viggo Mortensen": [
+  "actor:Viggo Mortensen": [
     122,
     120,
     121,
     490132,
     334533
   ],
-  "Sean Astin": [
+  "actor:Sean Astin": [
     122,
     120,
     121
   ],
-  "Peter Jackson": [
+  "director:Peter Jackson": [
     122,
     120,
     121
   ],
-  "Song Kang-ho": [
+  "actor:Song Kang-ho": [
     496243
   ],
-  "Lee Sun-kyun": [
+  "actor:Lee Sun-kyun": [
     496243
   ],
-  "Cho Yeo-jeong": [
+  "actor:Cho Yeo-jeong": [
     496243
   ],
-  "Choi Woo-shik": [
+  "actor:Choi Woo-shik": [
     496243
   ],
-  "Comedy": [
+  "genre:Comedy": [
     496243,
     680,
     13,
@@ -987,7 +987,7 @@
     792307,
     137
   ],
-  "2010s": [
+  "decade:2010s": [
     496243,
     157336,
     372058,
@@ -1066,43 +1066,43 @@
     76341,
     329865
   ],
-  "Bong Joon Ho": [
+  "director:Bong Joon Ho": [
     496243
   ],
-  "Matthew McConaughey": [
+  "actor:Matthew McConaughey": [
     157336,
     106646,
     152532,
     522627
   ],
-  "Anne Hathaway": [
+  "actor:Anne Hathaway": [
     157336,
     142
   ],
-  "Jessica Chastain": [
+  "actor:Jessica Chastain": [
     157336,
     286217
   ],
-  "John Travolta": [
+  "actor:John Travolta": [
     680
   ],
-  "Samuel L. Jackson": [
+  "actor:Samuel L. Jackson": [
     680,
     273248,
     100402
   ],
-  "Uma Thurman": [
+  "actor:Uma Thurman": [
     680,
     24,
     393
   ],
-  "Bruce Willis": [
+  "actor:Bruce Willis": [
     680,
     745,
     562,
     83666
   ],
-  "Quentin Tarantino": [
+  "director:Quentin Tarantino": [
     680,
     16869,
     68718,
@@ -1111,19 +1111,19 @@
     393,
     273248
   ],
-  "Ryunosuke Kamiki": [
+  "actor:Ryunosuke Kamiki": [
     372058
   ],
-  "Mone Kamishiraishi": [
+  "actor:Mone Kamishiraishi": [
     372058
   ],
-  "Ryo Narita": [
+  "actor:Ryo Narita": [
     372058
   ],
-  "Aoi Yuuki": [
+  "actor:Aoi Yuuki": [
     372058
   ],
-  "Romance": [
+  "genre:Romance": [
     372058,
     13,
     527641,
@@ -1155,73 +1155,69 @@
     792307,
     137
   ],
-  "Makoto Shinkai": [
+  "director:Makoto Shinkai": [
     372058
   ],
-  "Clint Eastwood": [
+  "actor:Clint Eastwood": [
     429,
     13223,
-    13223,
     70,
-    70,
-    33,
-    33,
-    322
+    33
   ],
-  "Eli Wallach": [
+  "actor:Eli Wallach": [
     429
   ],
-  "Lee Van Cleef": [
+  "actor:Lee Van Cleef": [
     429
   ],
-  "Aldo Giuffrè": [
+  "actor:Aldo Giuffrè": [
     429
   ],
-  "Western": [
+  "genre:Western": [
     429,
     68718,
     6977,
     33,
     273248
   ],
-  "1960s": [
+  "decade:1960s": [
     429,
     539,
     935,
     62
   ],
-  "Sergio Leone": [
+  "director:Sergio Leone": [
     429,
     311
   ],
-  "Robin Wright": [
+  "actor:Robin Wright": [
     13,
     2493
   ],
-  "Gary Sinise": [
+  "actor:Gary Sinise": [
     13
   ],
-  "Sally Field": [
+  "actor:Sally Field": [
     13
   ],
-  "Robert Zemeckis": [
+  "director:Robert Zemeckis": [
     13,
     105,
     165,
     8358
   ],
-  "Ray Liotta": [
+  "actor:Ray Liotta": [
     769
   ],
-  "Joe Pesci": [
+  "actor:Joe Pesci": [
     769,
     311,
     524
   ],
-  "Lorraine Bracco": [
+  "actor:Lorraine Bracco": [
     769
   ],
-  "Martin Scorsese": [
+  "director:Martin Scorsese": [
     769,
     11324,
     1422,
@@ -1229,19 +1225,19 @@
     106646,
     524
   ],
-  "Tsutomu Tatsumi": [
+  "actor:Tsutomu Tatsumi": [
     12477
   ],
-  "Ayano Shiraishi": [
+  "actor:Ayano Shiraishi": [
     12477
   ],
-  "Yoshiko Shinohara": [
+  "actor:Yoshiko Shinohara": [
     12477
   ],
-  "Akemi Yamaguchi": [
+  "actor:Akemi Yamaguchi": [
     12477
   ],
-  "1980s": [
+  "decade:1980s": [
     12477,
     1891,
     311,
@@ -1267,74 +1263,76 @@
     2493,
     218
   ],
-  "Isao Takahata": [
+  "director:Isao Takahata": [
     12477
   ],
-  "Roberto Benigni": [
-    637,
+  "actor:Roberto Benigni": [
     637
   ],
-  "Nicoletta Braschi": [
+  "actor:Nicoletta Braschi": [
     637
   ],
-  "Giorgio Cantarini": [
+  "actor:Giorgio Cantarini": [
     637
   ],
-  "Giustino Durano": [
+  "actor:Giustino Durano": [
     637
   ],
-  "Edward Norton": [
+  "director:Roberto Benigni": [
+    637
+  ],
+  "actor:Edward Norton": [
     550,
     73,
     399174,
     83666
   ],
-  "Brad Pitt": [
+  "actor:Brad Pitt": [
     550,
     807,
     16869,
     107
   ],
-  "Helena Bonham Carter": [
+  "actor:Helena Bonham Carter": [
     550,
     45269
   ],
-  "Meat Loaf": [
+  "actor:Meat Loaf": [
     550
   ],
-  "David Fincher": [
+  "director:David Fincher": [
     550,
     807,
     210577
   ],
-  "Alexandre Rodrigues": [
+  "actor:Alexandre Rodrigues": [
     598
   ],
-  "Leandro Firmino": [
+  "actor:Leandro Firmino": [
     598
   ],
-  "Phellipe Haagensen": [
+  "actor:Phellipe Haagensen": [
     598
   ],
-  "Douglas Silva": [
+  "actor:Douglas Silva": [
     598
   ],
-  "Fernando Meirelles": [
+  "director:Fernando Meirelles": [
     598
   ],
-  "Anthony Perkins": [
+  "actor:Anthony Perkins": [
     539
   ],
-  "Janet Leigh": [
+  "actor:Janet Leigh": [
     539
   ],
-  "Vera Miles": [
+  "actor:Vera Miles": [
     539
   ],
-  "John Gavin": [
+  "actor:John Gavin": [
     539
   ],
-  "Horror": [
+  "genre:Horror": [
     539,
     694,
     348,
@@ -1343,7 +1341,7 @@
     9552,
     578
   ],
-  "Mystery": [
+  "genre:Mystery": [
     539,
     807,
     567,
@@ -1367,52 +1365,52 @@
     414906,
     329865
   ],
-  "Alfred Hitchcock": [
+  "director:Alfred Hitchcock": [
     539,
     567,
     426
   ],
-  "Jack Nicholson": [
+  "actor:Jack Nicholson": [
     510,
     694,
     1422
   ],
-  "Brad Dourif": [
+  "actor:Brad Dourif": [
     510
   ],
-  "Louise Fletcher": [
+  "actor:Louise Fletcher": [
     510
   ],
-  "Danny DeVito": [
+  "actor:Danny DeVito": [
     510
   ],
-  "Miloš Forman": [
+  "director:Miloš Forman": [
     510
   ],
-  "Shameik Moore": [
+  "actor:Shameik Moore": [
     324857,
     569094
   ],
-  "Jake Johnson": [
+  "actor:Jake Johnson": [
     324857
   ],
-  "Hailee Steinfeld": [
+  "actor:Hailee Steinfeld": [
     324857,
     569094
   ],
-  "Mahershala Ali": [
+  "actor:Mahershala Ali": [
     324857,
     490132
   ],
-  "Bob Persichetti": [
+  "director:Bob Persichetti": [
     324857
   ],
-  "Mark Hamill": [
+  "actor:Mark Hamill": [
     1891,
     11,
     1892
   ],
-  "Harrison Ford": [
+  "actor:Harrison Ford": [
     1891,
     11,
     78,
@@ -1420,68 +1418,68 @@
     1892,
     89
   ],
-  "Carrie Fisher": [
+  "actor:Carrie Fisher": [
     1891,
     11,
     1892
   ],
-  "Billy Dee Williams": [
+  "actor:Billy Dee Williams": [
     1891,
     1892
   ],
-  "Irvin Kershner": [
+  "director:Irvin Kershner": [
     1891
   ],
-  "Chieko Baisho": [
+  "actor:Chieko Baisho": [
     4935
   ],
-  "Takuya Kimura": [
+  "actor:Takuya Kimura": [
     4935
   ],
-  "Akihiro Miwa": [
+  "actor:Akihiro Miwa": [
     4935
   ],
-  "Tatsuya Gashuin": [
+  "actor:Tatsuya Gashuin": [
     4935
   ],
-  "Gwyneth Paltrow": [
+  "actor:Gwyneth Paltrow": [
     807,
     1726
   ],
-  "John Cassini": [
+  "actor:John Cassini": [
     807
   ],
-  "James Woods": [
+  "actor:James Woods": [
     311,
     524
   ],
-  "Elizabeth McGovern": [
+  "actor:Elizabeth McGovern": [
     311
   ],
-  "Miles Teller": [
+  "actor:Miles Teller": [
     244786,
     361743
   ],
-  "J.K. Simmons": [
+  "actor:J.K. Simmons": [
     244786
   ],
-  "Paul Reiser": [
+  "actor:Paul Reiser": [
     244786,
     679
   ],
-  "Melissa Benoist": [
+  "actor:Melissa Benoist": [
     244786
   ],
-  "Music": [
+  "genre:Music": [
     244786,
     354912,
     424694
   ],
-  "Damien Chazelle": [
+  "director:Damien Chazelle": [
     244786,
     313369
   ],
-  "Leonardo DiCaprio": [
+  "actor:Leonardo DiCaprio": [
     27205,
     11324,
     68718,
@@ -1490,234 +1488,234 @@
     640,
     597
   ],
-  "Joseph Gordon-Levitt": [
+  "actor:Joseph Gordon-Levitt": [
     27205,
     49026
   ],
-  "Ken Watanabe": [
+  "actor:Ken Watanabe": [
     27205
   ],
-  "Tom Hardy": [
+  "actor:Tom Hardy": [
     27205,
     59440,
     49026,
     76341,
     76341
   ],
-  "Adrien Brody": [
+  "actor:Adrien Brody": [
     423,
     120467
   ],
-  "Thomas Kretschmann": [
+  "actor:Thomas Kretschmann": [
     423
   ],
-  "Frank Finlay": [
+  "actor:Frank Finlay": [
     423
   ],
-  "Maureen Lipman": [
+  "actor:Maureen Lipman": [
     423
   ],
-  "Roman Polanski": [
+  "director:Roman Polanski": [
     423
   ],
-  "Jodie Foster": [
+  "actor:Jodie Foster": [
     274,
     103
   ],
-  "Anthony Hopkins": [
+  "actor:Anthony Hopkins": [
     274
   ],
-  "Scott Glenn": [
+  "actor:Scott Glenn": [
     274
   ],
-  "Ted Levine": [
+  "actor:Ted Levine": [
     274
   ],
-  "Jonathan Demme": [
+  "director:Jonathan Demme": [
     274
   ],
-  "Brian Tyree Henry": [
+  "actor:Brian Tyree Henry": [
     569094
   ],
-  "Luna Lauren Vélez": [
+  "actor:Luna Lauren Vélez": [
     569094
   ],
-  "Kemp Powers": [
+  "director:Kemp Powers": [
     569094
   ],
-  "James Stewart": [
+  "actor:James Stewart": [
     567,
     426
   ],
-  "Grace Kelly": [
+  "actor:Grace Kelly": [
     567
   ],
-  "Wendell Corey": [
+  "actor:Wendell Corey": [
     567
   ],
-  "Thelma Ritter": [
+  "actor:Thelma Ritter": [
     567
   ],
-  "Michael J. Fox": [
+  "actor:Michael J. Fox": [
     105,
     165
   ],
-  "Christopher Lloyd": [
+  "actor:Christopher Lloyd": [
     105,
     615457,
     165
   ],
-  "Crispin Glover": [
+  "actor:Crispin Glover": [
     105
   ],
-  "Lea Thompson": [
+  "actor:Lea Thompson": [
     105,
     165
   ],
-  "Edward Furlong": [
+  "actor:Edward Furlong": [
     73,
     280
   ],
-  "Beverly D'Angelo": [
+  "actor:Beverly D'Angelo": [
     73
   ],
-  "Jennifer Lien": [
+  "actor:Jennifer Lien": [
     73
   ],
-  "Tony Kaye": [
+  "director:Tony Kaye": [
     73
   ],
-  "Yoji Matsuda": [
+  "actor:Yoji Matsuda": [
     128
   ],
-  "Yuriko Ishida": [
+  "actor:Yuriko Ishida": [
     128
   ],
-  "Yuko Tanaka": [
+  "actor:Yuko Tanaka": [
     128
   ],
-  "Kaoru Kobayashi": [
+  "actor:Kaoru Kobayashi": [
     128
   ],
-  "Lupita Nyong'o": [
+  "actor:Lupita Nyong'o": [
     1184918,
     76203
   ],
-  "Pedro Pascal": [
+  "actor:Pedro Pascal": [
     1184918
   ],
-  "Kit Connor": [
+  "actor:Kit Connor": [
     1184918
   ],
-  "Bill Nighy": [
+  "actor:Bill Nighy": [
     1184918,
     122906
   ],
-  "Chris Sanders": [
+  "director:Chris Sanders": [
     1184918
   ],
-  "Robin Williams": [
+  "actor:Robin Williams": [
     207,
     489,
     812
   ],
-  "Robert Sean Leonard": [
+  "actor:Robert Sean Leonard": [
     207
   ],
-  "Ethan Hawke": [
+  "actor:Ethan Hawke": [
     207
   ],
-  "Josh Charles": [
+  "actor:Josh Charles": [
     207
   ],
-  "Peter Weir": [
+  "director:Peter Weir": [
     207,
     37165
   ],
-  "Jean Reno": [
+  "actor:Jean Reno": [
     101
   ],
-  "Natalie Portman": [
+  "actor:Natalie Portman": [
     101,
     752
   ],
-  "Gary Oldman": [
+  "actor:Gary Oldman": [
     101,
     49026
   ],
-  "Danny Aiello": [
+  "actor:Danny Aiello": [
     101
   ],
-  "Luc Besson": [
+  "director:Luc Besson": [
     101
   ],
-  "François Cluzet": [
+  "actor:François Cluzet": [
     77338
   ],
-  "Omar Sy": [
+  "actor:Omar Sy": [
     77338
   ],
-  "Anne Le Ny": [
+  "actor:Anne Le Ny": [
     77338
   ],
-  "Audrey Fleurot": [
+  "actor:Audrey Fleurot": [
     77338
   ],
-  "Éric Toledano": [
+  "director:Éric Toledano": [
     77338
   ],
-  "Martin Sheen": [
+  "actor:Martin Sheen": [
     28,
     640
   ],
-  "Frederic Forrest": [
+  "actor:Frederic Forrest": [
     28
   ],
-  "Albert Hall": [
+  "actor:Albert Hall": [
     28
   ],
-  "Matthew Broderick": [
+  "actor:Matthew Broderick": [
     8587
   ],
-  "Moira Kelly": [
+  "actor:Moira Kelly": [
     8587
   ],
-  "Jeremy Irons": [
+  "actor:Jeremy Irons": [
     8587
   ],
-  "Nathan Lane": [
+  "actor:Nathan Lane": [
     8587
   ],
-  "Roger Allers": [
+  "director:Roger Allers": [
     8587
   ],
-  "Keanu Reeves": [
+  "actor:Keanu Reeves": [
     603,
     603692
   ],
-  "Laurence Fishburne": [
+  "actor:Laurence Fishburne": [
     603,
     322
   ],
-  "Carrie-Anne Moss": [
+  "actor:Carrie-Anne Moss": [
     603,
     77
   ],
-  "Hugo Weaving": [
+  "actor:Hugo Weaving": [
     603,
     752
   ],
-  "Lana Wachowski": [
+  "director:Lana Wachowski": [
     603
   ],
-  "Robert Downey Jr.": [
+  "actor:Robert Downey Jr.": [
     299536,
     299534,
     24428,
     872585,
     1726
   ],
-  "Chris Evans": [
+  "actor:Chris Evans": [
     299536,
     299534,
     24428,
@@ -1725,21 +1723,21 @@
     546554,
     100402
   ],
-  "Chris Hemsworth": [
+  "actor:Chris Hemsworth": [
     299536,
     299534,
     24428,
     96721
   ],
-  "Josh Brolin": [
+  "actor:Josh Brolin": [
     299536,
     6977
   ],
-  "Anthony Russo": [
+  "director:Anthony Russo": [
     299536,
     299534
   ],
-  "Mark Ruffalo": [
+  "actor:Mark Ruffalo": [
     299534,
     11324,
     38,
@@ -1747,528 +1745,527 @@
     314365,
     792307
   ],
-  "Choi Min-sik": [
+  "actor:Choi Min-sik": [
     670
   ],
-  "Yoo Ji-tae": [
+  "actor:Yoo Ji-tae": [
     670
   ],
-  "Kang Hye-jung": [
+  "actor:Kang Hye-jung": [
     670
   ],
-  "Kim Byeong-ok": [
+  "actor:Kim Byeong-ok": [
     670
   ],
-  "Park Chan-wook": [
+  "director:Park Chan-wook": [
     670
   ],
-  "Tom Sizemore": [
+  "actor:Tom Sizemore": [
     857
   ],
-  "Edward Burns": [
+  "actor:Edward Burns": [
     857
   ],
-  "Barry Pepper": [
+  "actor:Barry Pepper": [
     857
   ],
-  "Russell Crowe": [
+  "actor:Russell Crowe": [
     98,
     453,
     2118
   ],
-  "Joaquin Phoenix": [
+  "actor:Joaquin Phoenix": [
     98,
     475557,
     152601
   ],
-  "Connie Nielsen": [
+  "actor:Connie Nielsen": [
     98,
     615457
   ],
-  "Oliver Reed": [
+  "actor:Oliver Reed": [
     98
   ],
-  "Ridley Scott": [
+  "director:Ridley Scott": [
     98,
     348,
     78,
     286217
   ],
-  "Linda Cardellini": [
+  "actor:Linda Cardellini": [
     490132
   ],
-  "Sebastian Maniscalco": [
+  "actor:Sebastian Maniscalco": [
     490132
   ],
-  "Peter Farrelly": [
+  "director:Peter Farrelly": [
     490132
   ],
-  "Mélanie Laurent": [
+  "actor:Mélanie Laurent": [
     16869
   ],
-  "Christoph Waltz": [
+  "actor:Christoph Waltz": [
     16869,
     68718
   ],
-  "Eli Roth": [
+  "actor:Eli Roth": [
     16869
   ],
-  "Haley Lu Richardson": [
+  "actor:Haley Lu Richardson": [
     527641
   ],
-  "Cole Sprouse": [
+  "actor:Cole Sprouse": [
     527641
   ],
-  "Moisés Arias": [
+  "actor:Moisés Arias": [
     527641
   ],
-  "Kimberly Hébert Gregory": [
+  "actor:Kimberly Hébert Gregory": [
     527641
   ],
-  "Justin Baldoni": [
+  "director:Justin Baldoni": [
     527641
   ],
-  "Antonio Banderas": [
+  "actor:Antonio Banderas": [
     315162
   ],
-  "Salma Hayek Pinault": [
+  "actor:Salma Hayek Pinault": [
     315162
   ],
-  "Harvey Guillén": [
+  "actor:Harvey Guillén": [
     315162
   ],
-  "Wagner Moura": [
+  "actor:Wagner Moura": [
     315162
   ],
-  "Joel Crawford": [
+  "director:Joel Crawford": [
     315162
   ],
-  "Hugh Jackman": [
+  "actor:Hugh Jackman": [
     1124,
     146233,
     316029,
     263115
   ],
-  "Piper Perabo": [
+  "actor:Piper Perabo": [
     1124
   ],
-  "Emma Stone": [
+  "actor:Emma Stone": [
     50014,
     337404,
     313369,
     792307
   ],
-  "Viola Davis": [
+  "actor:Viola Davis": [
     50014,
     146233
   ],
-  "Bryce Dallas Howard": [
+  "actor:Bryce Dallas Howard": [
     50014
   ],
-  "Octavia Spencer": [
+  "actor:Octavia Spencer": [
     50014,
     381284,
     508439
   ],
-  "Tate Taylor": [
+  "director:Tate Taylor": [
     50014
   ],
-  "Peter Cushing": [
+  "actor:Peter Cushing": [
     11
   ],
-  "George Lucas": [
+  "director:George Lucas": [
     11
   ],
-  "Shelley Duvall": [
+  "actor:Shelley Duvall": [
     694
   ],
-  "Danny Lloyd": [
+  "actor:Danny Lloyd": [
     694
   ],
-  "Scatman Crothers": [
+  "actor:Scatman Crothers": [
     694
   ],
-  "Stanley Kubrick": [
+  "director:Stanley Kubrick": [
     694,
     185,
     935,
     600,
     62
   ],
-  "Anthony Gonzalez": [
+  "actor:Anthony Gonzalez": [
     354912
   ],
-  "Gael García Bernal": [
+  "actor:Gael García Bernal": [
     354912
   ],
-  "Benjamin Bratt": [
+  "actor:Benjamin Bratt": [
     354912
   ],
-  "Alanna Ubach": [
+  "actor:Alanna Ubach": [
     354912
   ],
-  "Lee Unkrich": [
+  "director:Lee Unkrich": [
     354912,
     10193
   ],
-  "Max von Sydow": [
+  "actor:Max von Sydow": [
     11324,
     9552
   ],
-  "Andrew Garfield": [
+  "actor:Andrew Garfield": [
     324786
   ],
-  "Sam Worthington": [
+  "actor:Sam Worthington": [
     324786
   ],
-  "Vince Vaughn": [
+  "actor:Vince Vaughn": [
     324786
   ],
-  "Teresa Palmer": [
+  "actor:Teresa Palmer": [
     324786
   ],
-  "Mel Gibson": [
+  "director:Mel Gibson": [
     324786,
-    197,
     197,
     1579
   ],
-  "Jamie Foxx": [
+  "actor:Jamie Foxx": [
     68718
   ],
-  "Kerry Washington": [
+  "actor:Kerry Washington": [
     68718
   ],
-  "Malcolm McDowell": [
+  "actor:Malcolm McDowell": [
     185
   ],
-  "Patrick Magee": [
+  "actor:Patrick Magee": [
     185
   ],
-  "Carl Duering": [
+  "actor:Carl Duering": [
     185
   ],
-  "Michael Bates": [
+  "actor:Michael Bates": [
     185
   ],
-  "Guy Pearce": [
+  "actor:Guy Pearce": [
     77,
     2118,
     45269
   ],
-  "Joe Pantoliano": [
+  "actor:Joe Pantoliano": [
     77
   ],
-  "Mark Boone Junior": [
+  "actor:Mark Boone Junior": [
     77
   ],
-  "Tom Skerritt": [
+  "actor:Tom Skerritt": [
     348
   ],
-  "Sigourney Weaver": [
+  "actor:Sigourney Weaver": [
     348,
     679
   ],
-  "Veronica Cartwright": [
+  "actor:Veronica Cartwright": [
     348
   ],
-  "Harry Dean Stanton": [
+  "actor:Harry Dean Stanton": [
     348
   ],
-  "Stephen Baldwin": [
+  "actor:Stephen Baldwin": [
     629
   ],
-  "Gabriel Byrne": [
+  "actor:Gabriel Byrne": [
     629
   ],
-  "Benicio del Toro": [
+  "actor:Benicio del Toro": [
     629
   ],
-  "Kevin Pollak": [
+  "actor:Kevin Pollak": [
     629
   ],
-  "Bryan Singer": [
+  "director:Bryan Singer": [
     629,
     424694
   ],
-  "Matt Damon": [
+  "actor:Matt Damon": [
     489,
     1422,
     872585,
     359724,
     286217
   ],
-  "Ben Affleck": [
+  "actor:Ben Affleck": [
     489,
     791373,
     210577
   ],
-  "Stellan Skarsgård": [
+  "actor:Stellan Skarsgård": [
     489
   ],
-  "Gus Van Sant": [
+  "director:Gus Van Sant": [
     489
   ],
-  "Mark Wahlberg": [
+  "actor:Mark Wahlberg": [
     1422
   ],
-  "Arnold Schwarzenegger": [
+  "actor:Arnold Schwarzenegger": [
     280,
     218
   ],
-  "Linda Hamilton": [
+  "actor:Linda Hamilton": [
     280,
     218
   ],
-  "Robert Patrick": [
+  "actor:Robert Patrick": [
     280
   ],
-  "James Cameron": [
+  "director:James Cameron": [
     280,
     679,
     597,
     218
   ],
-  "Tom Cruise": [
+  "actor:Tom Cruise": [
     361743,
     380,
     137113
   ],
-  "Jennifer Connelly": [
+  "actor:Jennifer Connelly": [
     361743,
     641,
     453
   ],
-  "Bashir Salahuddin": [
+  "actor:Bashir Salahuddin": [
     361743
   ],
-  "Joseph Kosinski": [
+  "director:Joseph Kosinski": [
     361743
   ],
-  "Jim Carrey": [
+  "actor:Jim Carrey": [
     37165,
     38
   ],
-  "Laura Linney": [
+  "actor:Laura Linney": [
     37165
   ],
-  "Noah Emmerich": [
+  "actor:Noah Emmerich": [
     37165
   ],
-  "Natascha McElhone": [
+  "actor:Natascha McElhone": [
     37165
   ],
-  "Steven Bauer": [
+  "actor:Steven Bauer": [
     111
   ],
-  "Michelle Pfeiffer": [
+  "actor:Michelle Pfeiffer": [
     111
   ],
-  "Mary Elizabeth Mastrantonio": [
+  "actor:Mary Elizabeth Mastrantonio": [
     111
   ],
-  "Brian De Palma": [
+  "director:Brian De Palma": [
     111,
     117
   ],
-  "Humphrey Bogart": [
+  "actor:Humphrey Bogart": [
     289
   ],
-  "Ingrid Bergman": [
+  "actor:Ingrid Bergman": [
     289
   ],
-  "Paul Henreid": [
+  "actor:Paul Henreid": [
     289
   ],
-  "Claude Rains": [
+  "actor:Claude Rains": [
     289
   ],
-  "1940s": [
+  "decade:1940s": [
     289,
     15
   ],
-  "Michael Curtiz": [
+  "director:Michael Curtiz": [
     289
   ],
-  "Kim Novak": [
+  "actor:Kim Novak": [
     426
   ],
-  "Barbara Bel Geddes": [
+  "actor:Barbara Bel Geddes": [
     426
   ],
-  "Tom Helmore": [
+  "actor:Tom Helmore": [
     426
   ],
-  "Timothée Chalamet": [
+  "actor:Timothée Chalamet": [
     693134,
     398818,
     438631
   ],
-  "Zendaya": [
+  "actor:Zendaya": [
     693134,
     634649
   ],
-  "Rebecca Ferguson": [
+  "actor:Rebecca Ferguson": [
     693134,
     316029,
     438631
   ],
-  "Javier Bardem": [
+  "actor:Javier Bardem": [
     693134,
     6977
   ],
-  "Denis Villeneuve": [
+  "director:Denis Villeneuve": [
     693134,
     146233,
     438631,
     329865
   ],
-  "Cybill Shepherd": [
+  "actor:Cybill Shepherd": [
     103
   ],
-  "Harvey Keitel": [
+  "actor:Harvey Keitel": [
     103,
     500
   ],
-  "Zazie Beetz": [
+  "actor:Zazie Beetz": [
     475557
   ],
-  "Frances Conroy": [
+  "actor:Frances Conroy": [
     475557
   ],
-  "Todd Phillips": [
+  "director:Todd Phillips": [
     475557
   ],
-  "Peter Sellers": [
+  "actor:Peter Sellers": [
     935
   ],
-  "George C. Scott": [
+  "actor:George C. Scott": [
     935
   ],
-  "Sterling Hayden": [
+  "actor:Sterling Hayden": [
     935
   ],
-  "Keenan Wynn": [
+  "actor:Keenan Wynn": [
     935
   ],
-  "Ben Burtt": [
+  "actor:Ben Burtt": [
     10681
   ],
-  "Elissa Knight": [
+  "actor:Elissa Knight": [
     10681
   ],
-  "Jeff Garlin": [
+  "actor:Jeff Garlin": [
     10681
   ],
-  "Fred Willard": [
+  "actor:Fred Willard": [
     10681
   ],
-  "Andrew Stanton": [
+  "director:Andrew Stanton": [
     10681,
     12
   ],
-  "Matthew Modine": [
+  "actor:Matthew Modine": [
     600
   ],
-  "Adam Baldwin": [
+  "actor:Adam Baldwin": [
     600
   ],
-  "Vincent D'Onofrio": [
+  "actor:Vincent D'Onofrio": [
     600
   ],
-  "R. Lee Ermey": [
+  "actor:R. Lee Ermey": [
     600
   ],
-  "Tim Roth": [
+  "actor:Tim Roth": [
     500
   ],
-  "Michael Madsen": [
+  "actor:Michael Madsen": [
     500,
     393
   ],
-  "Chris Penn": [
+  "actor:Chris Penn": [
     500
   ],
-  "Jake Gyllenhaal": [
+  "actor:Jake Gyllenhaal": [
     146233,
     142,
     141,
     242582
   ],
-  "Maria Bello": [
+  "actor:Maria Bello": [
     146233
   ],
-  "Jacob Tremblay": [
+  "actor:Jacob Tremblay": [
     406997,
     264644,
     508943
   ],
-  "Julia Roberts": [
+  "actor:Julia Roberts": [
     406997
   ],
-  "Owen Wilson": [
+  "actor:Owen Wilson": [
     406997
   ],
-  "Izabela Vidovic": [
+  "actor:Izabela Vidovic": [
     406997
   ],
-  "Stephen Chbosky": [
+  "director:Stephen Chbosky": [
     406997,
     84892
   ],
-  "Vinnie Jones": [
+  "actor:Vinnie Jones": [
     100
   ],
-  "Jason Flemyng": [
+  "actor:Jason Flemyng": [
     100
   ],
-  "Dexter Fletcher": [
+  "actor:Dexter Fletcher": [
     100
   ],
-  "Nick Moran": [
+  "actor:Nick Moran": [
     100
   ],
-  "Guy Ritchie": [
+  "director:Guy Ritchie": [
     100,
     107,
     522627
   ],
-  "Kate Winslet": [
+  "actor:Kate Winslet": [
     38,
     597
   ],
-  "Kirsten Dunst": [
+  "actor:Kirsten Dunst": [
     38
   ],
-  "Michel Gondry": [
+  "director:Michel Gondry": [
     38
   ],
-  "Armie Hammer": [
+  "actor:Armie Hammer": [
     398818
   ],
-  "Michael Stuhlbarg": [
+  "actor:Michael Stuhlbarg": [
     398818,
     329865
   ],
-  "Amira Casar": [
+  "actor:Amira Casar": [
     398818
   ],
-  "Luca Guadagnino": [
+  "director:Luca Guadagnino": [
     398818
   ],
-  "Henry Cavill": [
+  "actor:Henry Cavill": [
     791373
   ],
-  "Gal Gadot": [
+  "actor:Gal Gadot": [
     791373
   ],
-  "Ray Fisher": [
+  "actor:Ray Fisher": [
     791373
   ],
-  "Zack Snyder": [
+  "director:Zack Snyder": [
     791373
   ],
-  "Daniel Radcliffe": [
+  "actor:Daniel Radcliffe": [
     12445,
     673,
     671,
@@ -2278,7 +2275,7 @@
     767,
     675
   ],
-  "Emma Watson": [
+  "actor:Emma Watson": [
     12445,
     673,
     671,
@@ -2290,7 +2287,7 @@
     767,
     675
   ],
-  "Rupert Grint": [
+  "actor:Rupert Grint": [
     12445,
     673,
     671,
@@ -2300,1663 +2297,1678 @@
     767,
     675
   ],
-  "David Yates": [
+  "director:David Yates": [
     12445,
     12444,
     767,
     675
   ],
-  "Mario Casas": [
+  "actor:Mario Casas": [
     411088
   ],
-  "Ana Wagener": [
+  "actor:Ana Wagener": [
     411088
   ],
-  "Jose Coronado": [
+  "actor:Jose Coronado": [
     411088
   ],
-  "Bárbara Lennie": [
+  "actor:Bárbara Lennie": [
     411088
   ],
-  "Oriol Paulo": [
+  "director:Oriol Paulo": [
     411088
   ],
-  "Kurt Russell": [
+  "actor:Kurt Russell": [
     1091,
     273248
   ],
-  "Wilford Brimley": [
+  "actor:Wilford Brimley": [
     1091
   ],
-  "T.K. Carter": [
+  "actor:T.K. Carter": [
     1091
   ],
-  "David Clennon": [
+  "actor:David Clennon": [
     1091
   ],
-  "John Carpenter": [
+  "director:John Carpenter": [
     1091
   ],
-  "Daniel Day-Lewis": [
+  "actor:Daniel Day-Lewis": [
     7345
   ],
-  "Paul Dano": [
+  "actor:Paul Dano": [
     7345,
     773
   ],
-  "Kevin J. O'Connor": [
+  "actor:Kevin J. O'Connor": [
     7345
   ],
-  "Ciarán Hinds": [
+  "actor:Ciarán Hinds": [
     7345
   ],
-  "Paul Thomas Anderson": [
+  "director:Paul Thomas Anderson": [
     7345
   ],
-  "Noriko Hidaka": [
+  "actor:Noriko Hidaka": [
     8392
   ],
-  "Chika Sakamoto": [
+  "actor:Chika Sakamoto": [
     8392
   ],
-  "Hitoshi Takagi": [
+  "actor:Hitoshi Takagi": [
     8392
   ],
-  "Shigesato Itoi": [
+  "actor:Shigesato Itoi": [
     8392
   ],
-  "Joss Whedon": [
+  "director:Joss Whedon": [
     24428
   ],
-  "Keira Knightley": [
+  "actor:Keira Knightley": [
     4348,
     205596,
     22
   ],
-  "Matthew Macfadyen": [
+  "actor:Matthew Macfadyen": [
     4348
   ],
-  "Brenda Blethyn": [
+  "actor:Brenda Blethyn": [
     4348
   ],
-  "Rosamund Pike": [
+  "actor:Rosamund Pike": [
     4348,
     210577
   ],
-  "Joe Wright": [
+  "director:Joe Wright": [
     4348
   ],
-  "Frances McDormand": [
+  "actor:Frances McDormand": [
     359940,
     275
   ],
-  "Woody Harrelson": [
+  "actor:Woody Harrelson": [
     359940,
     6977
   ],
-  "Sam Rockwell": [
+  "actor:Sam Rockwell": [
     359940
   ],
-  "Abbie Cornish": [
+  "actor:Abbie Cornish": [
     359940
   ],
-  "Martin McDonagh": [
+  "director:Martin McDonagh": [
     359940
   ],
-  "Keir Dullea": [
+  "actor:Keir Dullea": [
     62
   ],
-  "Gary Lockwood": [
+  "actor:Gary Lockwood": [
     62
   ],
-  "William Sylvester": [
+  "actor:William Sylvester": [
     62
   ],
-  "Douglas Rain": [
+  "actor:Douglas Rain": [
     62
   ],
-  "Taraji P. Henson": [
+  "actor:Taraji P. Henson": [
     381284
   ],
-  "Janelle Monáe": [
+  "actor:Janelle Monáe": [
     381284
   ],
-  "Kevin Costner": [
+  "actor:Kevin Costner": [
     381284,
     117
   ],
-  "Theodore Melfi": [
+  "director:Theodore Melfi": [
     381284
   ],
-  "Dev Patel": [
+  "actor:Dev Patel": [
     334543,
     12405
   ],
-  "Rooney Mara": [
+  "actor:Rooney Mara": [
     334543
   ],
-  "David Wenham": [
+  "actor:David Wenham": [
     334543
   ],
-  "Nicole Kidman": [
+  "actor:Nicole Kidman": [
     334543
   ],
-  "Garth Davis": [
+  "director:Garth Davis": [
     334543
   ],
-  "Jonah Hill": [
+  "actor:Jonah Hill": [
     106646
   ],
-  "Margot Robbie": [
+  "actor:Margot Robbie": [
     106646
   ],
-  "F. Murray Abraham": [
+  "actor:F. Murray Abraham": [
     120467,
     166428
   ],
-  "Mathieu Amalric": [
+  "actor:Mathieu Amalric": [
     120467
   ],
-  "Wes Anderson": [
+  "director:Wes Anderson": [
     120467,
     399174,
     10315,
     83666
   ],
-  "Cillian Murphy": [
+  "actor:Cillian Murphy": [
     872585
   ],
-  "Emily Blunt": [
+  "actor:Emily Blunt": [
     872585,
     137113
   ],
-  "Robbie Coltrane": [
+  "actor:Robbie Coltrane": [
     673
   ],
-  "Alfonso Cuarón": [
+  "director:Alfonso Cuarón": [
     673
   ],
-  "Ellen Burstyn": [
+  "actor:Ellen Burstyn": [
     641,
     9552
   ],
-  "Jared Leto": [
+  "actor:Jared Leto": [
     641,
     152532,
     31011
   ],
-  "Marlon Wayans": [
+  "actor:Marlon Wayans": [
     641
   ],
-  "Darren Aronofsky": [
+  "director:Darren Aronofsky": [
     641
   ],
-  "Jon Bernthal": [
+  "actor:Jon Bernthal": [
     359724
   ],
-  "Caitríona Balfe": [
+  "actor:Caitríona Balfe": [
     359724
   ],
-  "James Mangold": [
+  "director:James Mangold": [
     359724,
     263115
   ],
-  "Richard Gere": [
+  "actor:Richard Gere": [
     28178
   ],
-  "Joan Allen": [
+  "actor:Joan Allen": [
     28178,
     264644
   ],
-  "Sarah Roemer": [
+  "actor:Sarah Roemer": [
     28178
   ],
-  "Cary-Hiroyuki Tagawa": [
+  "actor:Cary-Hiroyuki Tagawa": [
     28178
   ],
-  "Lasse Hallström": [
+  "director:Lasse Hallström": [
     28178
   ],
-  "Kevin Spacey": [
+  "actor:Kevin Spacey": [
     14,
     2118
   ],
-  "Annette Bening": [
+  "actor:Annette Bening": [
     14
   ],
-  "Thora Birch": [
+  "actor:Thora Birch": [
     14
   ],
-  "Wes Bentley": [
+  "actor:Wes Bentley": [
     14
   ],
-  "Sam Mendes": [
+  "director:Sam Mendes": [
     14,
     530915
   ],
-  "Sharon Stone": [
+  "actor:Sharon Stone": [
     524
   ],
-  "Mckenna Grace": [
+  "actor:Mckenna Grace": [
     400928
   ],
-  "Lindsay Duncan": [
+  "actor:Lindsay Duncan": [
     400928
   ],
-  "Jenny Slate": [
+  "actor:Jenny Slate": [
     400928,
     269149
   ],
-  "Marc Webb": [
+  "director:Marc Webb": [
     400928
   ],
-  "Christopher Carley": [
+  "actor:Christopher Carley": [
     13223
   ],
-  "Bee Vang": [
+  "actor:Bee Vang": [
     13223
   ],
-  "Ahney Her": [
+  "actor:Ahney Her": [
     13223
   ],
-  "Brie Larson": [
+  "director:Clint Eastwood": [
+    13223,
+    70,
+    33,
+    322
+  ],
+  "actor:Brie Larson": [
     264644
   ],
-  "Sean Bridgers": [
+  "actor:Sean Bridgers": [
     264644
   ],
-  "Lenny Abrahamson": [
+  "director:Lenny Abrahamson": [
     264644
   ],
-  "George MacKay": [
+  "actor:George MacKay": [
     530915,
     334533
   ],
-  "Dean-Charles Chapman": [
+  "actor:Dean-Charles Chapman": [
     530915
   ],
-  "Mark Strong": [
+  "actor:Mark Strong": [
     530915
   ],
-  "Andrew Scott": [
+  "actor:Andrew Scott": [
     530915
   ],
-  "Tim Allen": [
+  "actor:Tim Allen": [
     862,
     10193
   ],
-  "Don Rickles": [
+  "actor:Don Rickles": [
     862,
     10193
   ],
-  "Jim Varney": [
+  "actor:Jim Varney": [
     862
   ],
-  "John Lasseter": [
+  "director:John Lasseter": [
     862
   ],
-  "Benedict Cumberbatch": [
+  "actor:Benedict Cumberbatch": [
     205596,
     634649,
     76203
   ],
-  "Matthew Goode": [
+  "actor:Matthew Goode": [
     205596
   ],
-  "Rory Kinnear": [
+  "actor:Rory Kinnear": [
     205596
   ],
-  "Morten Tyldum": [
+  "director:Morten Tyldum": [
     205596
   ],
-  "Roman Griffin Davis": [
+  "actor:Roman Griffin Davis": [
     515001
   ],
-  "Thomasin McKenzie": [
+  "actor:Thomasin McKenzie": [
     515001
   ],
-  "Scarlett Johansson": [
+  "actor:Scarlett Johansson": [
     515001,
     152601,
     492188,
     100402
   ],
-  "Taika Waititi": [
-    515001,
+  "actor:Taika Waititi": [
     515001
   ],
-  "Christopher Walken": [
+  "director:Taika Waititi": [
+    515001
+  ],
+  "actor:Christopher Walken": [
     640
   ],
-  "Sam Neill": [
+  "actor:Sam Neill": [
     329
   ],
-  "Laura Dern": [
+  "actor:Laura Dern": [
     329,
     492188
   ],
-  "Jeff Goldblum": [
+  "actor:Jeff Goldblum": [
     329
   ],
-  "Richard Attenborough": [
+  "actor:Richard Attenborough": [
     329
   ],
-  "Emma Thompson": [
+  "actor:Emma Thompson": [
     337404
   ],
-  "Joel Fry": [
+  "actor:Joel Fry": [
     337404
   ],
-  "Paul Walter Hauser": [
+  "actor:Paul Walter Hauser": [
     337404
   ],
-  "Craig Gillespie": [
+  "director:Craig Gillespie": [
     337404
   ],
-  "Lucy Liu": [
+  "actor:Lucy Liu": [
     24
   ],
-  "Vivica A. Fox": [
+  "actor:Vivica A. Fox": [
     24
   ],
-  "Daryl Hannah": [
+  "actor:Daryl Hannah": [
     24,
     393
   ],
-  "Orson Welles": [
-    15,
+  "actor:Orson Welles": [
     15
   ],
-  "Joseph Cotten": [
+  "actor:Joseph Cotten": [
     15
   ],
-  "Dorothy Comingore": [
+  "actor:Dorothy Comingore": [
     15
   ],
-  "Ray Collins": [
+  "actor:Ray Collins": [
     15
   ],
-  "Nick Robinson": [
+  "director:Orson Welles": [
+    15
+  ],
+  "actor:Nick Robinson": [
     449176
   ],
-  "Jennifer Garner": [
+  "actor:Jennifer Garner": [
     449176,
     152532
   ],
-  "Josh Duhamel": [
+  "actor:Josh Duhamel": [
     449176
   ],
-  "Katherine Langford": [
+  "actor:Katherine Langford": [
     449176
   ],
-  "Greg Berlanti": [
+  "director:Greg Berlanti": [
     449176
   ],
-  "Carrie Henn": [
+  "actor:Carrie Henn": [
     679
   ],
-  "Michael Biehn": [
+  "actor:Michael Biehn": [
     679,
     218
   ],
-  "Ed Asner": [
+  "actor:Ed Asner": [
     14160
   ],
-  "Christopher Plummer": [
+  "actor:Christopher Plummer": [
     14160
   ],
-  "Jordan Nagai": [
+  "actor:Jordan Nagai": [
     14160
   ],
-  "Bob Peterson": [
+  "actor:Bob Peterson": [
     14160
   ],
-  "Pete Docter": [
+  "director:Pete Docter": [
     14160,
     150540,
     585
   ],
-  "Jennifer Aniston": [
+  "actor:Jennifer Aniston": [
     10386
   ],
-  "Harry Connick Jr.": [
+  "actor:Harry Connick Jr.": [
     10386
   ],
-  "Vin Diesel": [
+  "actor:Vin Diesel": [
     10386,
     118340
   ],
-  "James Gammon": [
+  "actor:James Gammon": [
     10386
   ],
-  "Brad Bird": [
+  "director:Brad Bird": [
     10386,
     2062,
     9806
   ],
-  "Ewan McGregor": [
+  "actor:Ewan McGregor": [
     627,
     587
   ],
-  "Ewen Bremner": [
+  "actor:Ewen Bremner": [
     627
   ],
-  "Jonny Lee Miller": [
+  "actor:Jonny Lee Miller": [
     627
   ],
-  "Kevin McKidd": [
+  "actor:Kevin McKidd": [
     627
   ],
-  "Danny Boyle": [
+  "director:Danny Boyle": [
     627,
     12405
   ],
-  "Rami Malek": [
+  "actor:Rami Malek": [
     424694
   ],
-  "Gwilym Lee": [
+  "actor:Gwilym Lee": [
     424694
   ],
-  "Ben Hardy": [
+  "actor:Ben Hardy": [
     424694
   ],
-  "Joseph Mazzello": [
+  "actor:Joseph Mazzello": [
     424694
   ],
-  "Haley Joel Osment": [
+  "actor:Haley Joel Osment": [
     745
   ],
-  "Toni Collette": [
+  "actor:Toni Collette": [
     745,
     773
   ],
-  "Olivia Williams": [
+  "actor:Olivia Williams": [
     745
   ],
-  "M. Night Shyamalan": [
+  "director:M. Night Shyamalan": [
     745
   ],
-  "Hilary Swank": [
+  "actor:Hilary Swank": [
     70
   ],
-  "Jay Baruchel": [
+  "actor:Jay Baruchel": [
     70,
     10191,
     166428,
     82702
   ],
-  "Tommy Lee Jones": [
+  "actor:Tommy Lee Jones": [
     6977
   ],
-  "Joel Coen": [
+  "director:Joel Coen": [
     6977,
     275,
     115
   ],
-  "Catherine McCormack": [
+  "actor:Mel Gibson": [
     197
   ],
-  "Sophie Marceau": [
+  "actor:Catherine McCormack": [
     197
   ],
-  "Patrick McGoohan": [
+  "actor:Sophie Marceau": [
     197
   ],
-  "Val Kilmer": [
+  "actor:Patrick McGoohan": [
+    197
+  ],
+  "actor:Val Kilmer": [
     949
   ],
-  "Jon Voight": [
+  "actor:Jon Voight": [
     949
   ],
-  "Michael Mann": [
+  "director:Michael Mann": [
     949
   ],
-  "Tom Holland": [
+  "actor:Tom Holland": [
     634649,
     508439
   ],
-  "Jacob Batalon": [
+  "actor:Jacob Batalon": [
     634649
   ],
-  "Jon Watts": [
+  "director:Jon Watts": [
     634649
   ],
-  "Rutger Hauer": [
+  "actor:Rutger Hauer": [
     78
   ],
-  "Sean Young": [
+  "actor:Sean Young": [
     78
   ],
-  "Edward James Olmos": [
+  "actor:Edward James Olmos": [
     78
   ],
-  "Chris Pratt": [
+  "actor:Chris Pratt": [
     447365,
     118340,
     508439
   ],
-  "Zoe Saldaña": [
+  "actor:Zoe Saldaña": [
     447365,
     118340
   ],
-  "Dave Bautista": [
+  "actor:Dave Bautista": [
     447365,
     118340
   ],
-  "Karen Gillan": [
+  "actor:Karen Gillan": [
     447365
   ],
-  "James Gunn": [
+  "director:James Gunn": [
     447365,
     118340
   ],
-  "Emilia Clarke": [
+  "actor:Emilia Clarke": [
     296096
   ],
-  "Sam Claflin": [
+  "actor:Sam Claflin": [
     296096,
     200727
   ],
-  "Janet McTeer": [
+  "actor:Janet McTeer": [
     296096
   ],
-  "Charles Dance": [
+  "actor:Charles Dance": [
     296096
   ],
-  "Thea Sharrock": [
+  "director:Thea Sharrock": [
     296096
   ],
-  "Chiwetel Ejiofor": [
+  "actor:Chiwetel Ejiofor": [
     76203
   ],
-  "Michael Fassbender": [
+  "actor:Michael Fassbender": [
     76203
   ],
-  "Steve McQueen": [
+  "director:Steve McQueen": [
     76203
   ],
-  "Karen Allen": [
+  "actor:Karen Allen": [
     85
   ],
-  "Paul Freeman": [
+  "actor:Paul Freeman": [
     85
   ],
-  "John Rhys-Davies": [
+  "actor:John Rhys-Davies": [
     85
   ],
-  "Dakota Fanning": [
+  "actor:Dakota Fanning": [
     14836
   ],
-  "Teri Hatcher": [
+  "actor:Teri Hatcher": [
     14836
   ],
-  "Jennifer Saunders": [
+  "actor:Jennifer Saunders": [
     14836
   ],
-  "Dawn French": [
+  "actor:Dawn French": [
     14836
   ],
-  "Henry Selick": [
+  "director:Henry Selick": [
     14836,
     9479
   ],
-  "Audrey Tautou": [
+  "actor:Audrey Tautou": [
     194
   ],
-  "Mathieu Kassovitz": [
+  "actor:Mathieu Kassovitz": [
     194
   ],
-  "Rufus": [
+  "actor:Rufus": [
     194
   ],
-  "Serge Merlin": [
+  "actor:Serge Merlin": [
     194
   ],
-  "Jean-Pierre Jeunet": [
+  "director:Jean-Pierre Jeunet": [
     194
   ],
-  "Gene Hackman": [
+  "actor:Gene Hackman": [
     33
   ],
-  "Jaimz Woolvett": [
+  "actor:Jaimz Woolvett": [
     33
   ],
-  "Denis O'Hare": [
+  "actor:Denis O'Hare": [
     152532
   ],
-  "Jean-Marc Vallée": [
+  "director:Jean-Marc Vallée": [
     152532
   ],
-  "Richard Marquand": [
+  "director:Richard Marquand": [
     1892
   ],
-  "Amy Poehler": [
+  "actor:Amy Poehler": [
     150540
   ],
-  "Phyllis Smith": [
+  "actor:Phyllis Smith": [
     150540
   ],
-  "Richard Kind": [
+  "actor:Richard Kind": [
     150540
   ],
-  "Bill Hader": [
+  "actor:Bill Hader": [
     150540
   ],
-  "Domhnall Gleeson": [
+  "actor:Domhnall Gleeson": [
     122906
   ],
-  "Rachel McAdams": [
+  "actor:Rachel McAdams": [
     122906,
     11036,
     314365
   ],
-  "Tom Hollander": [
+  "actor:Tom Hollander": [
     122906
   ],
-  "Richard Curtis": [
+  "director:Richard Curtis": [
     122906
   ],
-  "Ming-Na Wen": [
+  "actor:Ming-Na Wen": [
     10674
   ],
-  "Eddie Murphy": [
+  "actor:Eddie Murphy": [
     10674,
     808
   ],
-  "BD Wong": [
+  "actor:BD Wong": [
     10674
   ],
-  "Miguel Ferrer": [
+  "actor:Miguel Ferrer": [
     10674
   ],
-  "Tony Bancroft": [
+  "director:Tony Bancroft": [
     10674
   ],
-  "Billy Zane": [
+  "actor:Billy Zane": [
     597
   ],
-  "Kathy Bates": [
+  "actor:Kathy Bates": [
     597,
     1700
   ],
-  "Stephen Rea": [
+  "actor:Stephen Rea": [
     752
   ],
-  "Stephen Fry": [
+  "actor:Stephen Fry": [
     752
   ],
-  "James McTeigue": [
+  "director:James McTeigue": [
     752
   ],
-  "Richard Harris": [
+  "actor:Richard Harris": [
     671
   ],
-  "Chris Columbus": [
+  "director:Chris Columbus": [
     671,
     672
   ],
-  "John Legend": [
+  "actor:John Legend": [
     313369
   ],
-  "Rosemarie DeWitt": [
+  "actor:Rosemarie DeWitt": [
     313369
   ],
-  "Gena Rowlands": [
+  "actor:Gena Rowlands": [
     11036
   ],
-  "James Garner": [
+  "actor:James Garner": [
     11036
   ],
-  "Nick Cassavetes": [
+  "director:Nick Cassavetes": [
     11036
   ],
-  "Neil Patrick Harris": [
+  "actor:Neil Patrick Harris": [
     210577
   ],
-  "Tyler Perry": [
+  "actor:Tyler Perry": [
     210577
   ],
-  "Samantha Isler": [
+  "actor:Samantha Isler": [
     334533
   ],
-  "Annalise Basso": [
+  "actor:Annalise Basso": [
     334533
   ],
-  "Matt Ross": [
+  "director:Matt Ross": [
     334533
   ],
-  "Will Smith": [
+  "actor:Will Smith": [
     1402
   ],
-  "Jaden Smith": [
+  "actor:Jaden Smith": [
     1402
   ],
-  "Thandiwe Newton": [
+  "actor:Thandiwe Newton": [
     1402
   ],
-  "Brian Howe": [
+  "actor:Brian Howe": [
     1402
   ],
-  "Gabriele Muccino": [
+  "director:Gabriele Muccino": [
     1402
   ],
-  "David Carradine": [
+  "actor:David Carradine": [
     393
   ],
-  "Bob Odenkirk": [
+  "actor:Bob Odenkirk": [
     615457
   ],
-  "Aleksey Serebryakov": [
+  "actor:Aleksey Serebryakov": [
     615457
   ],
-  "Ilya Naishuller": [
+  "director:Ilya Naishuller": [
     615457
   ],
-  "Gerard Butler": [
+  "actor:Gerard Butler": [
     10191,
     82702
   ],
-  "Craig Ferguson": [
+  "actor:Craig Ferguson": [
     10191,
     82702
   ],
-  "America Ferrera": [
+  "actor:America Ferrera": [
     10191,
     166428
   ],
-  "Dean DeBlois": [
+  "director:Dean DeBlois": [
     10191,
     166428,
     82702
   ],
-  "Zac Efron": [
+  "actor:Zac Efron": [
     316029
   ],
-  "Michelle Williams": [
+  "actor:Michelle Williams": [
     316029,
     142
   ],
-  "Michael Gracey": [
+  "director:Michael Gracey": [
     316029
   ],
-  "John Goodman": [
+  "actor:John Goodman": [
     585,
     115
   ],
-  "Billy Crystal": [
+  "actor:Billy Crystal": [
     585
   ],
-  "Mary Gibbs": [
+  "actor:Mary Gibbs": [
     585
   ],
-  "Steve Buscemi": [
+  "actor:Steve Buscemi": [
     585,
     275,
     115
   ],
-  "Ed Harris": [
+  "actor:Ed Harris": [
     453
   ],
-  "Paul Bettany": [
+  "actor:Paul Bettany": [
     453
   ],
-  "Ron Howard": [
+  "director:Ron Howard": [
     453,
     96721
   ],
-  "Sean Connery": [
+  "actor:Sean Connery": [
     89,
     117
   ],
-  "Denholm Elliott": [
+  "actor:Denholm Elliott": [
     89
   ],
-  "Alison Doody": [
+  "actor:Alison Doody": [
     89
   ],
-  "William H. Macy": [
+  "actor:William H. Macy": [
     275
   ],
-  "Peter Stormare": [
+  "actor:Peter Stormare": [
     275
   ],
-  "Bryan Cranston": [
+  "actor:Bryan Cranston": [
     399174
   ],
-  "Koyu Rankin": [
+  "actor:Koyu Rankin": [
     399174
   ],
-  "Bob Balaban": [
+  "actor:Bob Balaban": [
     399174
   ],
-  "Patton Oswalt": [
+  "actor:Patton Oswalt": [
     2062
   ],
-  "Ian Holm": [
+  "actor:Ian Holm": [
     2062
   ],
-  "Lou Romano": [
+  "actor:Lou Romano": [
     2062
   ],
-  "Brian Dennehy": [
+  "actor:Brian Dennehy": [
     2062
   ],
-  "Saoirse Ronan": [
+  "actor:Saoirse Ronan": [
     331482
   ],
-  "Florence Pugh": [
+  "actor:Florence Pugh": [
     331482
   ],
-  "Eliza Scanlen": [
+  "actor:Eliza Scanlen": [
     331482
   ],
-  "Greta Gerwig": [
+  "director:Greta Gerwig": [
     331482
   ],
-  "Joel Edgerton": [
+  "actor:Joel Edgerton": [
     59440
   ],
-  "Nick Nolte": [
+  "actor:Nick Nolte": [
     59440
   ],
-  "Jennifer Morrison": [
+  "actor:Jennifer Morrison": [
     59440
   ],
-  "Gavin O'Connor": [
+  "director:Gavin O'Connor": [
     59440
   ],
-  "Daniel Craig": [
+  "actor:Daniel Craig": [
     546554
   ],
-  "Ana de Armas": [
+  "actor:Ana de Armas": [
     546554
   ],
-  "Jamie Lee Curtis": [
+  "actor:Jamie Lee Curtis": [
     546554
   ],
-  "Rian Johnson": [
+  "director:Rian Johnson": [
     546554
   ],
-  "Lynn Adrianna": [
+  "actor:Lynn Adrianna": [
     152601
   ],
-  "Lisa Renee Pitts": [
+  "actor:Lisa Renee Pitts": [
     152601
   ],
-  "Spike Jonze": [
+  "director:Spike Jonze": [
     152601
   ],
-  "Wil Wheaton": [
+  "actor:Wil Wheaton": [
     235
   ],
-  "River Phoenix": [
+  "actor:River Phoenix": [
     235
   ],
-  "Corey Feldman": [
+  "actor:Corey Feldman": [
     235
   ],
-  "Jerry O'Connell": [
+  "actor:Jerry O'Connell": [
     235
   ],
-  "Rob Reiner": [
+  "director:Rob Reiner": [
     235,
     1700,
     2493
   ],
-  "Jeff Bridges": [
+  "actor:Jeff Bridges": [
     115,
     1726
   ],
-  "Julianne Moore": [
+  "actor:Julianne Moore": [
     115
   ],
-  "Danny Elfman": [
+  "actor:Danny Elfman": [
     9479
   ],
-  "Chris Sarandon": [
+  "actor:Chris Sarandon": [
     9479,
     2493
   ],
-  "Catherine O'Hara": [
+  "actor:Catherine O'Hara": [
     9479
   ],
-  "William Hickey": [
+  "actor:William Hickey": [
     9479
   ],
-  "Johnny Depp": [
+  "actor:Johnny Depp": [
     22,
     162
   ],
-  "Geoffrey Rush": [
+  "actor:Geoffrey Rush": [
     22,
     45269
   ],
-  "Orlando Bloom": [
+  "actor:Orlando Bloom": [
     22
   ],
-  "Gore Verbinski": [
+  "director:Gore Verbinski": [
     22
   ],
-  "Eddie Redmayne": [
+  "actor:Eddie Redmayne": [
     266856
   ],
-  "Felicity Jones": [
+  "actor:Felicity Jones": [
     266856
   ],
-  "Charlie Cox": [
+  "actor:Charlie Cox": [
     266856
   ],
-  "Emily Watson": [
+  "actor:Emily Watson": [
     266856
   ],
-  "James Marsh": [
+  "director:James Marsh": [
     266856
   ],
-  "Jason Statham": [
+  "actor:Jason Statham": [
     107
   ],
-  "Alan Ford": [
+  "actor:Alan Ford": [
     107
   ],
-  "Stephen Graham": [
+  "actor:Stephen Graham": [
     107
   ],
-  "Asa Butterfield": [
+  "actor:Asa Butterfield": [
     14574
   ],
-  "Vera Farmiga": [
+  "actor:Vera Farmiga": [
     14574
   ],
-  "David Thewlis": [
+  "actor:David Thewlis": [
     14574
   ],
-  "Jack Scanlon": [
+  "actor:Jack Scanlon": [
     14574
   ],
-  "Mark Herman": [
+  "director:Mark Herman": [
     14574
   ],
-  "Dafne Keen": [
+  "actor:Dafne Keen": [
     263115
   ],
-  "Patrick Stewart": [
+  "actor:Patrick Stewart": [
     263115
   ],
-  "Elizabeth Rodriguez": [
+  "actor:Elizabeth Rodriguez": [
     263115
   ],
-  "George Clooney": [
+  "actor:George Clooney": [
     10315
   ],
-  "Meryl Streep": [
+  "actor:Meryl Streep": [
     10315
   ],
-  "Jason Schwartzman": [
+  "actor:Jason Schwartzman": [
     10315
   ],
-  "Eric Chase Anderson": [
+  "actor:Eric Chase Anderson": [
     10315
   ],
-  "Albert Brooks": [
+  "actor:Albert Brooks": [
     12
   ],
-  "Ellen DeGeneres": [
+  "actor:Ellen DeGeneres": [
     12
   ],
-  "Alexander Gould": [
+  "actor:Alexander Gould": [
     12
   ],
-  "Willem Dafoe": [
+  "actor:Willem Dafoe": [
     12,
     792,
     792307
   ],
-  "Alan Rickman": [
+  "actor:Alan Rickman": [
     562
   ],
-  "Alexander Godunov": [
+  "actor:Alexander Godunov": [
     562
   ],
-  "Bonnie Bedelia": [
+  "actor:Bonnie Bedelia": [
     562
   ],
-  "John McTiernan": [
+  "director:John McTiernan": [
     562
   ],
-  "Lily Collins": [
+  "actor:Lily Collins": [
     200727
   ],
-  "Christian Cooke": [
+  "actor:Christian Cooke": [
     200727
   ],
-  "Tamsin Egerton": [
+  "actor:Tamsin Egerton": [
     200727
   ],
-  "Christian Ditter": [
+  "director:Christian Ditter": [
     200727
   ],
-  "Joan Cusack": [
+  "actor:Joan Cusack": [
     10193
   ],
-  "Michael Keaton": [
+  "actor:Michael Keaton": [
     314365
   ],
-  "Liev Schreiber": [
+  "actor:Liev Schreiber": [
     314365
   ],
-  "Tom McCarthy": [
+  "director:Tom McCarthy": [
     314365
   ],
-  "Logan Lerman": [
+  "actor:Logan Lerman": [
     84892
   ],
-  "Ezra Miller": [
+  "actor:Ezra Miller": [
     84892
   ],
-  "Mae Whitman": [
+  "actor:Mae Whitman": [
     84892
   ],
-  "James Cromwell": [
+  "actor:James Cromwell": [
     2118
   ],
-  "Curtis Hanson": [
+  "director:Curtis Hanson": [
     2118
   ],
-  "Graham Chapman": [
+  "actor:Graham Chapman": [
     762
   ],
-  "John Cleese": [
+  "actor:John Cleese": [
     762
   ],
-  "Eric Idle": [
+  "actor:Eric Idle": [
     762
   ],
-  "Terry Gilliam": [
+  "actor:Terry Gilliam": [
     762
   ],
-  "Terry Jones": [
+  "director:Terry Jones": [
     762
   ],
-  "Brendan Gleeson": [
+  "actor:Brendan Gleeson": [
     674,
     137113
   ],
-  "Mike Newell": [
+  "director:Mike Newell": [
     674
   ],
-  "Sylvester Stallone": [
+  "actor:Sylvester Stallone": [
     1366
   ],
-  "Talia Shire": [
+  "actor:Talia Shire": [
     1366
   ],
-  "Burt Young": [
+  "actor:Burt Young": [
     1366
   ],
-  "Carl Weathers": [
+  "actor:Carl Weathers": [
     1366
   ],
-  "John G. Avildsen": [
+  "director:John G. Avildsen": [
     1366
   ],
-  "Kelly Marie Tran": [
+  "actor:Kelly Marie Tran": [
     527774
   ],
-  "Awkwafina": [
+  "actor:Awkwafina": [
     527774
   ],
-  "Gemma Chan": [
+  "actor:Gemma Chan": [
     527774
   ],
-  "Alan Tudyk": [
+  "actor:Alan Tudyk": [
     527774
   ],
-  "Don Hall": [
+  "director:Don Hall": [
     527774,
     177572
   ],
-  "Naomi Watts": [
+  "actor:Naomi Watts": [
     1018
   ],
-  "Laura Harring": [
+  "actor:Laura Harring": [
     1018
   ],
-  "Justin Theroux": [
+  "actor:Justin Theroux": [
     1018
   ],
-  "Ann Miller": [
+  "actor:Ann Miller": [
     1018
   ],
-  "David Lynch": [
+  "director:David Lynch": [
     1018
   ],
-  "Emile Hirsch": [
+  "actor:Emile Hirsch": [
     5915
   ],
-  "Marcia Gay Harden": [
+  "actor:Marcia Gay Harden": [
     5915
   ],
-  "William Hurt": [
+  "actor:William Hurt": [
     5915
   ],
-  "Jena Malone": [
+  "actor:Jena Malone": [
     5915,
     141
   ],
-  "Sean Penn": [
-    5915,
-    322
+  "director:Sean Penn": [
+    5915
   ],
-  "Sarah Polley": [
+  "actor:Sarah Polley": [
     31011
   ],
-  "Diane Kruger": [
+  "actor:Diane Kruger": [
     31011
   ],
-  "Linh-Dan Pham": [
+  "actor:Linh-Dan Pham": [
     31011
   ],
-  "Jaco Van Dormael": [
+  "director:Jaco Van Dormael": [
     31011
   ],
-  "Thomas F. Wilson": [
+  "actor:Thomas F. Wilson": [
     165
   ],
-  "Ang Lee": [
+  "director:Ang Lee": [
     142
   ],
-  "Oscar Isaac": [
+  "actor:Oscar Isaac": [
     438631
   ],
-  "Jason Momoa": [
+  "actor:Jason Momoa": [
     438631
   ],
-  "Jack Dylan Grazer": [
+  "actor:Jack Dylan Grazer": [
     508943
   ],
-  "Emma Berman": [
+  "actor:Emma Berman": [
     508943
   ],
-  "Saverio Raimondo": [
+  "actor:Saverio Raimondo": [
     508943
   ],
-  "Enrico Casarosa": [
+  "director:Enrico Casarosa": [
     508943
   ],
-  "Mike Myers": [
+  "actor:Mike Myers": [
     808
   ],
-  "Cameron Diaz": [
+  "actor:Cameron Diaz": [
     808
   ],
-  "John Lithgow": [
+  "actor:John Lithgow": [
     808
   ],
-  "Andrew Adamson": [
+  "director:Andrew Adamson": [
     808
   ],
-  "Ivana Baquero": [
+  "actor:Ivana Baquero": [
     1417
   ],
-  "Sergi López": [
+  "actor:Sergi López": [
     1417
   ],
-  "Maribel Verdú": [
+  "actor:Maribel Verdú": [
     1417
   ],
-  "Doug Jones": [
+  "actor:Doug Jones": [
     1417
   ],
-  "Guillermo del Toro": [
+  "director:Guillermo del Toro": [
     1417
   ],
-  "Ginnifer Goodwin": [
+  "actor:Ginnifer Goodwin": [
     269149
   ],
-  "Jason Bateman": [
+  "actor:Jason Bateman": [
     269149
   ],
-  "Idris Elba": [
+  "actor:Idris Elba": [
     269149
   ],
-  "Byron Howard": [
+  "director:Byron Howard": [
     269149
   ],
-  "James Duval": [
+  "actor:James Duval": [
     141
   ],
-  "Drew Barrymore": [
+  "actor:Drew Barrymore": [
     141
   ],
-  "Richard Kelly": [
+  "director:Richard Kelly": [
     141
   ],
-  "Charles Martin Smith": [
+  "actor:Charles Martin Smith": [
     117
   ],
-  "Jennifer Jason Leigh": [
+  "actor:Jennifer Jason Leigh": [
     273248
   ],
-  "Walton Goggins": [
+  "actor:Walton Goggins": [
     273248
   ],
-  "Cate Blanchett": [
+  "actor:Cate Blanchett": [
     166428,
     82702
   ],
-  "Richard Farnsworth": [
+  "actor:Richard Farnsworth": [
     1700
   ],
-  "Lauren Bacall": [
+  "actor:Lauren Bacall": [
     1700
   ],
-  "Albert Finney": [
+  "actor:Albert Finney": [
     587
   ],
-  "Billy Crudup": [
+  "actor:Billy Crudup": [
     587
   ],
-  "Jessica Lange": [
+  "actor:Jessica Lange": [
     587
   ],
-  "Tim Burton": [
+  "director:Tim Burton": [
     587,
     162
   ],
-  "Dustin Hoffman": [
+  "actor:Dustin Hoffman": [
     380
   ],
-  "Valeria Golino": [
+  "actor:Valeria Golino": [
     380
   ],
-  "Gerald R. Molen": [
+  "actor:Gerald R. Molen": [
     380
   ],
-  "Barry Levinson": [
+  "director:Barry Levinson": [
     380
   ],
-  "Gong Yoo": [
+  "actor:Gong Yoo": [
     396535
   ],
-  "Kim Su-an": [
+  "actor:Kim Su-an": [
     396535
   ],
-  "Jung Yu-mi": [
+  "actor:Jung Yu-mi": [
     396535
   ],
-  "Don Lee": [
+  "actor:Don Lee": [
     396535
   ],
-  "Yeon Sang-ho": [
+  "director:Yeon Sang-ho": [
     396535
   ],
-  "Charlie Sheen": [
+  "actor:Charlie Sheen": [
     792
   ],
-  "Tom Berenger": [
+  "actor:Tom Berenger": [
     792
   ],
-  "Kevin Dillon": [
+  "actor:Kevin Dillon": [
     792
   ],
-  "Oliver Stone": [
+  "director:Oliver Stone": [
     792
   ],
-  "Linda Blair": [
+  "actor:Linda Blair": [
     9552
   ],
-  "Jason Miller": [
+  "actor:Jason Miller": [
     9552
   ],
-  "William Friedkin": [
+  "director:William Friedkin": [
     9552
   ],
-  "Daniel Brühl": [
+  "actor:Daniel Brühl": [
     96721
   ],
-  "Olivia Wilde": [
+  "actor:Olivia Wilde": [
     96721
   ],
-  "Alexandra Maria Lara": [
+  "actor:Alexandra Maria Lara": [
     96721
   ],
-  "Kevin Bacon": [
+  "actor:Sean Penn": [
     322
   ],
-  "Toby Jones": [
+  "actor:Kevin Bacon": [
+    322
+  ],
+  "actor:Toby Jones": [
     12444
   ],
-  "Colin Firth": [
+  "actor:Colin Firth": [
     45269
   ],
-  "Tom Hooper": [
+  "director:Tom Hooper": [
     45269
   ],
-  "Adam Driver": [
+  "actor:Adam Driver": [
     492188
   ],
-  "Alan Alda": [
+  "actor:Alan Alda": [
     492188
   ],
-  "Noah Baumbach": [
+  "director:Noah Baumbach": [
     492188
   ],
-  "Freida Pinto": [
+  "actor:Freida Pinto": [
     12405
   ],
-  "Madhur Mittal": [
+  "actor:Madhur Mittal": [
     12405
   ],
-  "Anil Kapoor": [
+  "actor:Anil Kapoor": [
     12405
   ],
-  "Katie Holmes": [
+  "actor:Katie Holmes": [
     272
   ],
-  "Craig T. Nelson": [
+  "actor:Craig T. Nelson": [
     9806
   ],
-  "Holly Hunter": [
+  "actor:Holly Hunter": [
     9806
   ],
-  "Sarah Vowell": [
+  "actor:Sarah Vowell": [
     9806
   ],
-  "Spencer Fox": [
+  "actor:Spencer Fox": [
     9806
   ],
-  "Scott Adsit": [
+  "actor:Scott Adsit": [
     177572
   ],
-  "Ryan Potter": [
+  "actor:Ryan Potter": [
     177572
   ],
-  "Daniel Henney": [
+  "actor:Daniel Henney": [
     177572
   ],
-  "T.J. Miller": [
+  "actor:T.J. Miller": [
     177572
   ],
-  "Paige O'Hara": [
+  "actor:Paige O'Hara": [
     10020
   ],
-  "Robby Benson": [
+  "actor:Robby Benson": [
     10020
   ],
-  "Richard White": [
+  "actor:Richard White": [
     10020
   ],
-  "Jerry Orbach": [
+  "actor:Jerry Orbach": [
     10020
   ],
-  "Gary Trousdale": [
+  "director:Gary Trousdale": [
     10020
   ],
-  "Winona Ryder": [
+  "actor:Winona Ryder": [
     162
   ],
-  "Dianne Wiest": [
+  "actor:Dianne Wiest": [
     162
   ],
-  "Anthony Michael Hall": [
+  "actor:Anthony Michael Hall": [
     162,
     2108
   ],
-  "Emilio Estevez": [
+  "actor:Emilio Estevez": [
     2108
   ],
-  "Judd Nelson": [
+  "actor:Judd Nelson": [
     2108
   ],
-  "Molly Ringwald": [
+  "actor:Molly Ringwald": [
     2108
   ],
-  "John Hughes": [
+  "director:John Hughes": [
     2108
   ],
-  "Michelle Yeoh": [
+  "actor:Michelle Yeoh": [
     545611
   ],
-  "Stephanie Hsu": [
+  "actor:Stephanie Hsu": [
     545611
   ],
-  "Ke Huy Quan": [
+  "actor:Ke Huy Quan": [
     545611
   ],
-  "James Hong": [
+  "actor:James Hong": [
     545611
   ],
-  "Daniel Scheinert": [
+  "director:Daniel Scheinert": [
     545611
   ],
-  "Donnie Yen": [
+  "actor:Donnie Yen": [
     603692
   ],
-  "Bill Skarsgård": [
+  "actor:Bill Skarsgård": [
     603692
   ],
-  "Ian McShane": [
+  "actor:Ian McShane": [
     603692
   ],
-  "Chad Stahelski": [
+  "director:Chad Stahelski": [
     603692
   ],
-  "Rene Russo": [
+  "actor:Rene Russo": [
     242582
   ],
-  "Riz Ahmed": [
+  "actor:Riz Ahmed": [
     242582
   ],
-  "Bill Paxton": [
+  "actor:Bill Paxton": [
     242582,
     137113
   ],
-  "Dan Gilroy": [
+  "director:Dan Gilroy": [
     242582
   ],
-  "Kenneth Branagh": [
+  "actor:Kenneth Branagh": [
     672
   ],
-  "Kristen Wiig": [
+  "actor:Kristen Wiig": [
     286217
   ],
-  "Jeff Daniels": [
+  "actor:Jeff Daniels": [
     286217
   ],
-  "Cary Elwes": [
+  "actor:Cary Elwes": [
     2493
   ],
-  "Mandy Patinkin": [
+  "actor:Mandy Patinkin": [
     2493
   ],
-  "Greg Kinnear": [
+  "actor:Greg Kinnear": [
     773
   ],
-  "Steve Carell": [
+  "actor:Steve Carell": [
     773
   ],
-  "Valerie Faris": [
+  "director:Valerie Faris": [
     773
   ],
-  "Paul Winfield": [
+  "actor:Paul Winfield": [
     218
   ],
-  "Roy Scheider": [
+  "actor:Roy Scheider": [
     578
   ],
-  "Robert Shaw": [
+  "actor:Robert Shaw": [
     578
   ],
-  "Richard Dreyfuss": [
+  "actor:Richard Dreyfuss": [
     578
   ],
-  "Lorraine Gary": [
+  "actor:Lorraine Gary": [
     578
   ],
-  "Jim Broadbent": [
+  "actor:Jim Broadbent": [
     767
   ],
-  "Jared Gilman": [
+  "actor:Jared Gilman": [
     83666
   ],
-  "Kara Hayward": [
+  "actor:Kara Hayward": [
     83666
   ],
-  "Imelda Staunton": [
+  "actor:Imelda Staunton": [
     675
   ],
-  "Sandra Bullock": [
+  "actor:Sandra Bullock": [
     22881
   ],
-  "Tim McGraw": [
+  "actor:Tim McGraw": [
     22881
   ],
-  "Quinton Aaron": [
+  "actor:Quinton Aaron": [
     22881
   ],
-  "Jae Head": [
+  "actor:Jae Head": [
     22881
   ],
-  "John Lee Hancock": [
+  "director:John Lee Hancock": [
     22881
   ],
-  "Helen Hunt": [
+  "actor:Helen Hunt": [
     8358
   ],
-  "Nick Searcy": [
+  "actor:Nick Searcy": [
     8358
   ],
-  "Jenifer Lewis": [
+  "actor:Jenifer Lewis": [
     8358
   ],
-  "Robert Pattinson": [
+  "actor:Robert Pattinson": [
     414906
   ],
-  "Zoë Kravitz": [
+  "actor:Zoë Kravitz": [
     414906
   ],
-  "Jeffrey Wright": [
+  "actor:Jeffrey Wright": [
     414906
   ],
-  "Colin Farrell": [
+  "actor:Colin Farrell": [
     414906
   ],
-  "Matt Reeves": [
+  "director:Matt Reeves": [
     414906
   ],
-  "Terrence Howard": [
+  "actor:Terrence Howard": [
     1726
   ],
-  "Jon Favreau": [
+  "director:Jon Favreau": [
     1726
   ],
-  "Charlie Hunnam": [
+  "actor:Charlie Hunnam": [
     522627
   ],
-  "Michelle Dockery": [
+  "actor:Michelle Dockery": [
     522627
   ],
-  "Jeremy Strong": [
+  "actor:Jeremy Strong": [
     522627
   ],
-  "Amber Midthunder": [
+  "actor:Amber Midthunder": [
     766507
   ],
-  "Dakota Beavers": [
+  "actor:Dakota Beavers": [
     766507
   ],
-  "Michelle Thrush": [
+  "actor:Michelle Thrush": [
     766507
   ],
-  "Stormee Kipp": [
+  "actor:Stormee Kipp": [
     766507
   ],
-  "Dan Trachtenberg": [
+  "director:Dan Trachtenberg": [
     766507
   ],
-  "Scott Weinger": [
+  "actor:Scott Weinger": [
     812
   ],
-  "Linda Larkin": [
+  "actor:Linda Larkin": [
     812
   ],
-  "Jonathan Freeman": [
+  "actor:Jonathan Freeman": [
     812
   ],
-  "John Musker": [
+  "director:John Musker": [
     812
   ],
-  "Robert Redford": [
+  "actor:Robert Redford": [
     100402
   ],
-  "Joe Russo": [
+  "director:Joe Russo": [
     100402
   ],
-  "Rudy Youngblood": [
+  "actor:Rudy Youngblood": [
     1579
   ],
-  "Raoul Max Trujillo": [
+  "actor:Raoul Max Trujillo": [
     1579
   ],
-  "Gerardo Taracena": [
+  "actor:Gerardo Taracena": [
     1579
   ],
-  "Iazua Larios": [
+  "actor:Iazua Larios": [
     1579
   ],
-  "Doug Liman": [
+  "director:Doug Liman": [
     137113
   ],
-  "Julia Louis-Dreyfus": [
+  "actor:Julia Louis-Dreyfus": [
     508439
   ],
-  "Dan Scanlon": [
+  "director:Dan Scanlon": [
     508439
   ],
-  "Ramy Youssef": [
+  "actor:Ramy Youssef": [
     792307
   ],
-  "Yorgos Lanthimos": [
+  "director:Yorgos Lanthimos": [
     792307
   ],
-  "Charlize Theron": [
+  "actor:Charlize Theron": [
     76341,
     76341
   ],
-  "Nicholas Hoult": [
+  "actor:Nicholas Hoult": [
     76341,
     76341
   ],
-  "Hugh Keays-Byrne": [
+  "actor:Hugh Keays-Byrne": [
     76341,
     76341
   ],
-  "George Miller": [
+  "director:George Miller": [
     76341,
     76341
   ],
-  "Bill Murray": [
+  "actor:Bill Murray": [
     137
   ],
-  "Andie MacDowell": [
+  "actor:Andie MacDowell": [
     137
   ],
-  "Chris Elliott": [
+  "actor:Chris Elliott": [
     137
   ],
-  "Stephen Tobolowsky": [
+  "actor:Stephen Tobolowsky": [
     137
   ],
-  "Harold Ramis": [
+  "director:Harold Ramis": [
     137
   ],
-  "Amy Adams": [
+  "actor:Amy Adams": [
     329865
   ],
-  "Jeremy Renner": [
+  "actor:Jeremy Renner": [
     329865
   ],
-  "Forest Whitaker": [
+  "actor:Forest Whitaker": [
     329865
   ]
 }
