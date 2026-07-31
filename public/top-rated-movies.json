@@ -1492,26 +1492,6 @@
     ]
   },
   {
-    "id": 508442,
-    "title": "Soul",
-    "year": 2020,
-    "decade": "2020s",
-    "director": "Pete Docter",
-    "genres": [
-      "Animation",
-      "Family",
-      "Drama",
-      "Music",
-      "Fantasy"
-    ],
-    "actors": [
-      "Jamie Foxx",
-      "Tina Fey",
-      "Graham Norton",
-      "Rachel House"
-    ]
-  },
-  {
     "id": 38,
     "title": "Eternal Sunshine of the Spotless Mind",
     "year": 2004,
@@ -2758,7 +2738,7 @@
     "title": "How to Train Your Dragon",
     "year": 2010,
     "decade": "2010s",
-    "director": "Chris Sanders",
+    "director": "Dean DeBlois",
     "genres": [
       "Fantasy",
       "Adventure",
@@ -3838,7 +3818,7 @@
     "title": "Big Hero 6",
     "year": 2014,
     "decade": "2010s",
-    "director": "Chris Williams",
+    "director": "Don Hall",
     "genres": [
       "Adventure",
       "Family",
@@ -4051,24 +4031,6 @@
       "Cate Blanchett",
       "Gerard Butler",
       "Craig Ferguson"
-    ]
-  },
-  {
-    "id": 44214,
-    "title": "Black Swan",
-    "year": 2010,
-    "decade": "2010s",
-    "director": "Darren Aronofsky",
-    "genres": [
-      "Drama",
-      "Thriller",
-      "Horror"
-    ],
-    "actors": [
-      "Natalie Portman",
-      "Mila Kunis",
-      "Vincent Cassel",
-      "Barbara Hershey"
     ]
   },
   {
@@ -4338,6 +4300,26 @@
     ]
   },
   {
+    "id": 508439,
+    "title": "Onward",
+    "year": 2020,
+    "decade": "2020s",
+    "director": "Dan Scanlon",
+    "genres": [
+      "Adventure",
+      "Animation",
+      "Comedy",
+      "Family",
+      "Fantasy"
+    ],
+    "actors": [
+      "Tom Holland",
+      "Chris Pratt",
+      "Julia Louis-Dreyfus",
+      "Octavia Spencer"
+    ]
+  },
+  {
     "id": 792307,
     "title": "Poor Things",
     "year": 2023,
@@ -4356,23 +4338,21 @@
     ]
   },
   {
-    "id": 508439,
-    "title": "Onward",
-    "year": 2020,
-    "decade": "2020s",
-    "director": "Dan Scanlon",
+    "id": 76341,
+    "title": "Mad Max: Fury Road",
+    "year": 2015,
+    "decade": "2010s",
+    "director": "George Miller",
     "genres": [
+      "Action",
       "Adventure",
-      "Animation",
-      "Comedy",
-      "Family",
-      "Fantasy"
+      "Sci-Fi"
     ],
     "actors": [
-      "Tom Holland",
-      "Chris Pratt",
-      "Julia Louis-Dreyfus",
-      "Octavia Spencer"
+      "Tom Hardy",
+      "Charlize Theron",
+      "Nicholas Hoult",
+      "Hugh Keays-Byrne"
     ]
   },
   {

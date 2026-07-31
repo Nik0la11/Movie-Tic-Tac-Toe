@@ -1,4 +1,4 @@
-async function fetchFromTMDB(endpoint: string, params = "") {
+/*async function fetchFromTMDB(endpoint: string, params = "") {
   const res = await fetch(
     `/api/movies?endpoint=${encodeURIComponent(
       endpoint
@@ -68,5 +68,27 @@ export async function generateRandomGrid() {
   } catch (err) {
     console.error("Greska pri generisanju grida: ", err);
     return null;
+  }
+}
+*/
+
+import moviesData from "@/public/top-rated-movies.json";
+
+interface Movie {
+  id: number;
+  title: string;
+  year: number;
+  decade: string;
+  director: string;
+  genres: string[];
+  actors: string[];
+}
+
+const movies = moviesData as Movie[];
+
+export function generateRandomGrid() {
+  console.log(movies.length);
+  for (const movie of movies) {
+    console.log(movie.title);
   }
 }

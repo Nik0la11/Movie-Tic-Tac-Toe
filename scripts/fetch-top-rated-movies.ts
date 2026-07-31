@@ -41,7 +41,7 @@ const genreMap: { [key: number]: string } = {
 
 async function fetchTopRatedMovies() {
   const topMovies: Movie[] = [];
-  console.log("Krecem za fecovanjem filmova");
+  console.log("Krecem sa fecovanjem filmova");
 
   for (let page = 1; page <= PAGES; page++) {
     try {
@@ -85,7 +85,7 @@ async function fetchTopRatedMovies() {
         });
       }
 
-      console.log(`Obradjen je stranica ${page}`);
+      console.log(`Obradjena je stranica ${page}`);
       await delay(250);
     } catch (err) {
       console.error("Greska tokom fecovanja filmova", err);
