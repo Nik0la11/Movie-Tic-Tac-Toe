@@ -12,9 +12,6 @@ interface Cell {
 }
 
 const SinglePlayerGame = () => {
-  const columns = ["Leonardo Di Caprio", "Brad Pitt", "Decade: 1990"];
-  const rows = ["Christopher Nolan", "Oppenheimer", "David Fincher"];
-
   const [gridData, setGridData] = useState<{
     rows: string[];
     cols: string[];
@@ -29,19 +26,22 @@ const SinglePlayerGame = () => {
     }))
   );
 
+  const [isCellClicked, setIsCellClicked] = useState(false);
+
   const handleClick = (cellId: number) => {
     console.log(`Kliknuto je polje sa ID: ${cellId}`);
+    setIsCellClicked(true);
   };
 
   useEffect(() => {
-    function testAPI() {
+    function testGrid() {
       console.log("Zapocinjem generisanje grida: ");
       const res = generateRandomGrid();
       console.log(`kolone: ${res?.cols}, redovi: ${res?.rows}`);
       setGridData(res as { rows: string[]; cols: string[] });
     }
 
-    testAPI();
+    testGrid();
   }, []);
 
   if (!gridData) {
@@ -102,6 +102,39 @@ const SinglePlayerGame = () => {
           <img src="/tmdb-logo.png" alt="TMDb Logo" className="w-12 h-auto" />
         </div>
       </footer>
+      {isCellClicked ? (
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-white/50"
+          onClick={() => setIsCellClicked(false)}
+        >
+          <div
+            className="bg-slate-800 px-8 py-8 flex flex-col items-center justify-center relative rounded-md w-96"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-3 right-3 cursor-pointer"
+              onClick={() => setIsCellClicked(false)}
+            >
+              X
+            </button>
+            <p className="text-slate-400 text-xl mb-6">Enter your guess</p>
+
+            <input
+              type="text"
+              placeholder="Search for movies..."
+              className="rounded-md p-2 bg-slate-600 w-full grow mb-4"
+            />
+            <button
+              className="text-white bg-slate-400 p-2 w-full rounded-md cursor-not-allowed hover:bg-green-500 cursor-pointer"
+              disabled
+            >
+              Choose
+            </button>
+          </div>
+        </div>
+      ) : (
+        <></>
+      )}
     </div>
   );
 };

@@ -30,13 +30,7 @@ export function generateRandomGrid() {
 
       if (!rows.includes(randomKey)) rows.push(randomKey);
     }
-    /*
-    const moviesInRows = new Set([
-      ...(index[rows[0]] || []),
-      ...(index[rows[1]] || []),
-      ...(index[rows[2]] || []),
-    ]);
-*/
+
     const cols: string[] = [];
 
     const validColsForThisRows = allKeys.filter((key) => {
