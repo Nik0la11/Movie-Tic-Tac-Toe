@@ -27,6 +27,8 @@ const SinglePlayerGame = () => {
   );
 
   const [isCellClicked, setIsCellClicked] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const [searchMovies, setSearchMovies] = useState("");
 
   const handleClick = (cellId: number) => {
     console.log(`Kliknuto je polje sa ID: ${cellId}`);
@@ -43,6 +45,26 @@ const SinglePlayerGame = () => {
 
     testGrid();
   }, []);
+
+  useEffect(() => {
+    const fetchMovies = async () => {
+      if (searchValue.trim().length < 2) return;
+
+      const searchEncodedValue = encodeURIComponent(searchValue.trim());
+
+      const endpoint = "/search/movie";
+      const params = `&query=${searchEncodedValue}&include_adult=false&language=en-US`;
+
+      const res = await fetch(
+        `/api/movies?endpoint=${endpoint}&params=${encodeURIComponent(params)}`
+      );
+      const data = await res.json();
+
+      console.log(`rezulati pretrage:`, data.results);
+    };
+
+    fetchMovies();
+  }, [searchValue]);
 
   if (!gridData) {
     return <div className="h-screen overflow-hidden"></div>;
@@ -92,7 +114,7 @@ const SinglePlayerGame = () => {
       </div>
 
       {/* Footer */}
-      <footer className="p-2 w-full justify-between text-center text-xs text-slate-400 flex items-center">
+      <footer className="px-2 w-full justify-between text-center text-xs text-slate-400 flex items-center mt-4">
         <div>
           <p>© {new Date().getFullYear()} Movie Tic-Tac-Toe. Made by Retard.</p>
         </div>
@@ -102,6 +124,7 @@ const SinglePlayerGame = () => {
           <img src="/tmdb-logo.png" alt="TMDb Logo" className="w-12 h-auto" />
         </div>
       </footer>
+
       {isCellClicked ? (
         <div
           className="fixed inset-0 flex items-center justify-center bg-white/50"
@@ -122,8 +145,13 @@ const SinglePlayerGame = () => {
             <input
               type="text"
               placeholder="Search for movies..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
               className="rounded-md p-2 bg-slate-600 w-full grow mb-4"
             />
+
+            {searchValue ? <div></div> : <></>}
+
             <button
               className="text-white bg-slate-400 p-2 w-full rounded-md cursor-not-allowed hover:bg-green-500 cursor-pointer"
               disabled
