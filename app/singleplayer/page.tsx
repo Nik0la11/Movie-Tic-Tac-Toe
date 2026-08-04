@@ -15,6 +15,11 @@ interface Movie {
   id: number;
   title: string;
   poster_path: string;
+  year: number;
+  decade: string;
+  director: string;
+  genres: string[];
+  actors: string[];
 }
 
 const SinglePlayerGame = () => {
@@ -35,10 +40,18 @@ const SinglePlayerGame = () => {
   const [isCellClicked, setIsCellClicked] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [searchMovies, setSearchMovies] = useState<Movie[]>([]);
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [choosedMovie, setChoosedMovie] = useState<Movie | null>(null);
+  const [clickedCell, setClickedCell] = useState<number | null>(null);
+  const [cellRow, setCellRow] = useState("");
+  const [cellCol, setCellCol] = useState("");
 
-  const handleClick = (cellId: number) => {
+  const handleClick = (cellId: number, rowName: string, colName: string) => {
     console.log(`Kliknuto je polje sa ID: ${cellId}`);
     setIsCellClicked(true);
+    setClickedCell(cellId);
+    setCellRow(rowName);
+    setCellCol(colName);
   };
 
   useEffect(() => {
@@ -74,6 +87,125 @@ const SinglePlayerGame = () => {
   const handleClose = () => {
     setIsCellClicked(false);
     setSearchValue("");
+    setSelectedMovie(null);
+  };
+
+  const handleSelectMovieFromSearch = async (movieId: number) => {
+    try {
+      const endpoint = `/movie/${movieId}`;
+      const params = "&append_to_response=credits";
+
+      const res = await fetch(
+        `/api/movies?endpoint=${endpoint}&params=${encodeURIComponent(params)}`
+      );
+      const data = await res.json();
+      console.log(data);
+
+      const directorObject = data.credits.crew.find(
+        (member: any) => member.job === "Director"
+      );
+
+      const releaseYear = parseInt(data.release_date.split("-")[0]);
+      const decade = `${Math.floor(releaseYear / 10) * 10}s`;
+      const genres: string[] = data.genres.map((genre: any) => genre.name);
+      const actors: string[] = data.credits.cast
+        .slice(0, 4)
+        .map((actor: any) => actor.name);
+
+      const completeMovie = {
+        id: data.id,
+        title: data.title,
+        poster_path: data.poster_path,
+        year: releaseYear,
+        decade: decade,
+        director: directorObject ? directorObject.name : "Unknown Director",
+        genres: genres,
+        actors: actors || [],
+      };
+
+      setSelectedMovie(completeMovie);
+      setSearchValue("");
+    } catch (err) {
+      console.error("Error: ", err);
+    }
+  };
+
+  const handleChooseMovie = (movie: Movie) => {
+    const rowType = cellRow.split(":")[0];
+    const rowValue = cellRow.split(":")[1];
+    const colType = cellCol.split(":")[0];
+    const colValue = cellCol.split(":")[1];
+
+    // Ovo promijeniti da poredi idejeve umjeseto imena zanrova
+
+    switch (true) {
+      case rowType === "genre" && colType === "actor": {
+        let genreToComapre = rowValue;
+
+        if (rowValue === "Sci-Fi") {
+          genreToComapre = "Science Fiction";
+        }
+
+        if (
+          movie.actors.some((actor) => actor === colValue) &&
+          movie.genres.some((genre) => genre === genreToComapre)
+        ) {
+          console.log("Pogodak");
+        } else {
+          console.log("Promasaj");
+        }
+        break;
+      }
+
+      case rowType === "genre" && colType === "director": {
+        let genreToComapre = rowValue;
+
+        if (rowValue === "Sci-Fi") {
+          genreToComapre = "Science Fiction";
+        }
+
+        if (
+          movie.director === colValue &&
+          movie.genres.some((genre) => genre === genreToComapre)
+        ) {
+          console.log("Pogodak");
+        } else {
+          console.log("Promasaj");
+        }
+        break;
+      }
+
+      case rowType === "decade" && colType === "actor": {
+        if (
+          movie.actors.some((actor) => actor === colValue) &&
+          movie.decade === rowValue
+        ) {
+          console.log("Pogodak");
+        } else {
+          console.log("Promasaj");
+        }
+        break;
+      }
+
+      case rowType === "decade" && colType === "director": {
+        if (movie.director === colValue && movie.decade === rowValue) {
+          console.log("Pogodak");
+        } else {
+          console.log("Promasaj");
+        }
+        break;
+      }
+
+      default:
+        console.log("Greska");
+    }
+
+    console.log("Kolona:", colValue);
+    console.log("glumci:", movie.actors);
+    console.log("Red:", rowValue);
+    console.log("Zanrovi:", movie.genres);
+
+    console.log("Film:", movie);
   };
 
   if (!gridData) {
@@ -111,9 +243,11 @@ const SinglePlayerGame = () => {
             {[0, 1, 2].map((colIndex) => {
               const cellId = rowIndex * 3 + colIndex;
 
+              const colName = gridData?.cols[colIndex] || "";
+
               return (
                 <button
-                  onClick={() => handleClick(cellId)}
+                  onClick={() => handleClick(cellId, rowName, colName)}
                   key={cellId}
                   className="cursor-pointer bg-slate-800 flex items-center justify-center p-4 break-words leading-tight aspect-[2/3] text-l"
                 ></button>
@@ -152,6 +286,24 @@ const SinglePlayerGame = () => {
             </button>
             <p className="text-slate-400 text-xl mb-6">Enter your guess</p>
 
+            {selectedMovie ? (
+              <div className="flex justify-start items-center p-2 gap-2 w-full bg-blue-500 mb-4 rounded-md">
+                {selectedMovie.poster_path ? (
+                  <img
+                    src={`https://image.tmdb.org/t/p/w92${selectedMovie.poster_path}`}
+                    alt={selectedMovie.title}
+                    className=" h-16 aspect-[2/3] object-cover rounded-sm"
+                  />
+                ) : (
+                  <div className="h-16 aspect-[2/3] bg-slate-600 rounded-sm flex flex-col items-center justify-center text-[10px] text-slate-400 font-bold border border-slate-500/30 shrink-0 select-none">
+                    🎬 <span>NO PIC</span>
+                  </div>
+                )}
+                <p>{selectedMovie.title}</p>
+              </div>
+            ) : (
+              <></>
+            )}
             <input
               type="text"
               placeholder="Search for movies..."
@@ -167,6 +319,9 @@ const SinglePlayerGame = () => {
                   {searchMovies.map((searchMovie) => (
                     <button
                       key={searchMovie.id}
+                      onClick={() =>
+                        handleSelectMovieFromSearch(searchMovie.id)
+                      }
                       className="flex justify-start items-center p-2 gap-2 cursor-pointer border-b border-b-slate-400 w-full"
                     >
                       {searchMovie.poster_path ? (
@@ -194,8 +349,17 @@ const SinglePlayerGame = () => {
             )}
 
             <button
-              className="text-white bg-slate-400 p-2 w-full rounded-md cursor-not-allowed hover:bg-green-500 cursor-pointer"
-              disabled
+              className={
+                selectedMovie
+                  ? "bg-green-500 cursor-pointer text-white p-2 w-full rounded-md hover:bg-green-700"
+                  : "text-white bg-slate-400 p-2 w-full rounded-md cursor-not-allowed"
+              }
+              disabled={!selectedMovie}
+              onClick={() => {
+                if (selectedMovie) {
+                  handleChooseMovie(selectedMovie);
+                }
+              }}
             >
               Choose
             </button>
