@@ -41,10 +41,12 @@ const SinglePlayerGame = () => {
   const [searchValue, setSearchValue] = useState("");
   const [searchMovies, setSearchMovies] = useState<Movie[]>([]);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-  const [choosedMovie, setChoosedMovie] = useState<Movie | null>(null);
   const [clickedCell, setClickedCell] = useState<number | null>(null);
   const [cellRow, setCellRow] = useState("");
   const [cellCol, setCellCol] = useState("");
+  const [gridGuesses, setGridGuesses] = useState<
+    Record<number, { poster_path: string; title: string }>
+  >({});
 
   const handleClick = (cellId: number, rowName: string, colName: string) => {
     console.log(`Kliknuto je polje sa ID: ${cellId}`);
@@ -150,9 +152,13 @@ const SinglePlayerGame = () => {
           movie.actors.some((actor) => actor === colValue) &&
           movie.genres.some((genre) => genre === genreToComapre)
         ) {
-          console.log("Pogodak");
-        } else {
-          console.log("Promasaj");
+          setGridGuesses((prev) => ({
+            ...prev,
+            [clickedCell!]: {
+              poster_path: movie.poster_path,
+              title: movie.title,
+            },
+          }));
         }
         break;
       }
@@ -168,9 +174,13 @@ const SinglePlayerGame = () => {
           movie.director === colValue &&
           movie.genres.some((genre) => genre === genreToComapre)
         ) {
-          console.log("Pogodak");
-        } else {
-          console.log("Promasaj");
+          setGridGuesses((prev) => ({
+            ...prev,
+            [clickedCell!]: {
+              poster_path: movie.poster_path,
+              title: movie.title,
+            },
+          }));
         }
         break;
       }
@@ -180,18 +190,26 @@ const SinglePlayerGame = () => {
           movie.actors.some((actor) => actor === colValue) &&
           movie.decade === rowValue
         ) {
-          console.log("Pogodak");
-        } else {
-          console.log("Promasaj");
+          setGridGuesses((prev) => ({
+            ...prev,
+            [clickedCell!]: {
+              poster_path: movie.poster_path,
+              title: movie.title,
+            },
+          }));
         }
         break;
       }
 
       case rowType === "decade" && colType === "director": {
         if (movie.director === colValue && movie.decade === rowValue) {
-          console.log("Pogodak");
-        } else {
-          console.log("Promasaj");
+          setGridGuesses((prev) => ({
+            ...prev,
+            [clickedCell!]: {
+              poster_path: movie.poster_path,
+              title: movie.title,
+            },
+          }));
         }
         break;
       }
@@ -200,12 +218,9 @@ const SinglePlayerGame = () => {
         console.log("Greska");
     }
 
-    console.log("Kolona:", colValue);
-    console.log("glumci:", movie.actors);
-    console.log("Red:", rowValue);
-    console.log("Zanrovi:", movie.genres);
-
-    console.log("Film:", movie);
+    setIsCellClicked(false);
+    setSearchValue("");
+    setSelectedMovie(null);
   };
 
   if (!gridData) {
@@ -245,12 +260,25 @@ const SinglePlayerGame = () => {
 
               const colName = gridData?.cols[colIndex] || "";
 
+              const guessedMovie = gridGuesses[cellId];
+
               return (
                 <button
                   onClick={() => handleClick(cellId, rowName, colName)}
                   key={cellId}
-                  className="cursor-pointer bg-slate-800 flex items-center justify-center p-4 break-words leading-tight aspect-[2/3] text-l"
-                ></button>
+                  disabled={!!guessedMovie}
+                  className="relative cursor-pointer bg-slate-800 flex items-center justify-center p-4 break-words leading-tight aspect-[2/3] text-l"
+                >
+                  {guessedMovie ? (
+                    <img
+                      className="absolute inset-0 w-full h-full object-cover"
+                      alt={guessedMovie?.title}
+                      src={`https://image.tmdb.org/t/p/w500${guessedMovie?.poster_path}`}
+                    />
+                  ) : (
+                    <></>
+                  )}
+                </button>
               );
             })}
           </React.Fragment>
@@ -307,6 +335,7 @@ const SinglePlayerGame = () => {
             <input
               type="text"
               placeholder="Search for movies..."
+              autoFocus
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               autoComplete="off"
