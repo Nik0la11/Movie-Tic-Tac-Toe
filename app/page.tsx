@@ -1,9 +1,9 @@
-import SinglePlayerGame from "./singleplayer/page";
+import HomePage from "@/app/components/HomePage";
 
 export default function Home() {
   return (
     <div>
-      <SinglePlayerGame />
+      <HomePage />
     </div>
   );
 }

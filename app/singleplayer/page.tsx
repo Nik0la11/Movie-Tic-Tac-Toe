@@ -3,6 +3,9 @@
 import React, { useState } from "react";
 import { useEffect } from "react";
 import { generateRandomGrid } from "@/utils/tmdb";
+import { io } from "socket.io-client";
+import Footer from "../components/Footer";
+import Header from "../components/Header";
 
 interface Cell {
   id: number;
@@ -223,6 +226,14 @@ const SinglePlayerGame = () => {
     setSelectedMovie(null);
   };
 
+  const socket = io("http://localhost:4000");
+
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log(`You connected with id: ${socket.id}`);
+    });
+  }, []);
+
   if (!gridData) {
     return <div className="h-screen overflow-hidden"></div>;
   }
@@ -230,11 +241,8 @@ const SinglePlayerGame = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950">
       {/* Header */}
-      <header className="text-center mb-5 p-3 border-b w-full">
-        <h1 className="text-2xl font-extrabold tracking-tighter">
-          Movie Tic - Tac - Toe
-        </h1>
-      </header>
+
+      <Header />
 
       {/* Grid */}
       <div className="grid grid-cols-4 gap-1 max-w-md w-full mx-auto md:ml-122">
@@ -286,16 +294,7 @@ const SinglePlayerGame = () => {
       </div>
 
       {/* Footer */}
-      <footer className="px-2 w-full justify-between text-center text-xs text-slate-400 flex items-center mt-4">
-        <div>
-          <p>© {new Date().getFullYear()} Movie Tic-Tac-Toe. Made by Retard.</p>
-        </div>
-
-        <div className="flex sm:flex-row items-center justify-center gap-2 max-w-md opacity-70 hover:opacity-100 transition-opacity duration-300">
-          <p className="text-xs text-slate-400">Powered by</p>
-          <img src="/tmdb-logo.png" alt="TMDb Logo" className="w-12 h-auto" />
-        </div>
-      </footer>
+      <Footer />
 
       {isCellClicked ? (
         <div
