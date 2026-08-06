@@ -8,7 +8,7 @@ const Room = () => {
     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950">
       <Header />
       <div className="flex-1 flex flex-col items-center justify-center  w-full max-w-4xl mx-auto">
-        <div className="flex items-center gap-5 justify-center sm:justify-between bg-slate-800 p-4 rounded-md sm:gap-34 mb-8">
+        <div className="flex items-center gap-5 w-full sm:w-auto justify-center sm:justify-between bg-slate-800 p-4 rounded-md sm:gap-34 mb-8">
           <h2 className="text-xl sm:text-2xl">Rooms</h2>
           <div className="flex justify-center items-center gap-2">
             <input
@@ -20,7 +20,7 @@ const Room = () => {
             </button>
           </div>
         </div>
-        <div className="flex flex-col items-start justify-center bg-slate-800 rounded-md p-4">
+        <div className="w-full sm:w-auto flex flex-col sm:items-start justify-center bg-slate-800 rounded-md p-4">
           <div className="flex items-center justify-start mb-2">
             <h2 className="text-xl sm:text-2xl">Create Room: Settings</h2>
           </div>
