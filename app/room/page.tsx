@@ -13,7 +13,7 @@ const Room = () => {
           <div className="flex justify-center items-center gap-2">
             <input
               type="text"
-              className="bg-white py-2 px-8 rounded-md border-2 border-blue-500"
+              className="bg-white py-2 px-4 sm:px-8 rounded-md border-2 border-blue-500"
             />
             <button className="rounded-md py-2 px-8 bg-blue-500 border-2 border-blue-500">
               Join
@@ -26,33 +26,33 @@ const Room = () => {
           </div>
 
           <div className="flex items-center justify-center mb-2">
-            <div className="rounded-l-md border border-white pr-4 w-28 pl-2 sm:pr-12 py-2 sm:w-36">
+            <div className="rounded-l-md border border-white pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36">
               Best of 3
             </div>
-            <div className="border-y-1 border-r-1 pr-4 w-28 pl-2 sm:pr-12 py-2 sm:w-36">
+            <div className="border-y-1 border-r-1 pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36">
               Best of 5
             </div>
-            <div className="border-y-1 pr-4 w-28 pl-2 sm:pr-12 py-2 sm:w-36">
+            <div className="border-y-1 pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36">
               Best of 7
             </div>
-            <div className="rounded-r-md border border-white pr-4 w-28 pl-2 sm:pr-12 py-2 sm:w-36">
+            <div className="rounded-r-md border border-white pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36">
               Unlimited
             </div>
           </div>
           <div className="flex items-center justify-center mb-4">
-            <div className="rounded-l-md border border-white pr-4 w-28 pl-2 sm:pr-12 py-2 sm:w-36">
+            <div className="rounded-l-md border border-white pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36">
               <h4>Anti Cheat</h4>
               <p className="text-gray-400 text-xs">15s turns</p>
             </div>
-            <div className="border-y-1 border-r-1 pr-4 w-28 pl-2 sm:pr-12 py-2 sm:w-36">
+            <div className="border-y-1 border-r-1 pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36">
               <h4>Normal</h4>
               <p className="text-gray-400 text-xs">40s turns</p>
             </div>
-            <div className="border-y-1 pr-4 w-28 pl-2 sm:pr-12 py-2 sm:w-36">
+            <div className="border-y-1 pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36">
               <h4>Tactician</h4>
               <p className="text-gray-400 text-xs">60s turns</p>
             </div>
-            <div className="rounded-r-md border border-white pr-4 w-28 pl-2 sm:pr-12 py-2 sm:w-36">
+            <div className="rounded-r-md border border-white pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36">
               <h4>Unlimited</h4>
               <p className="text-gray-400 text-xs">No limit</p>
             </div>
