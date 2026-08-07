@@ -7,6 +7,7 @@ import { io, Socket } from "socket.io-client";
 import Footer from "@/app/components/Footer";
 import Header from "@/app/components/Header";
 import { useParams } from "next/navigation";
+import { useRef } from "react";
 
 interface Cell {
   id: number;
@@ -49,8 +50,10 @@ const MultiPlayerGame = () => {
   const [cellRow, setCellRow] = useState("");
   const [cellCol, setCellCol] = useState("");
   const [gridGuesses, setGridGuesses] = useState<
-    Record<number, { poster_path: string; title: string }>
+    Record<number, { poster_path: string; title: string; claimedBy: "X" | "O" }>
   >({});
+  const [role, setRole] = useState("X");
+  const socketRef = useRef<Socket | null>(null);
 
   let socket: Socket;
 
@@ -58,7 +61,9 @@ const MultiPlayerGame = () => {
   const roomID = params.roomId as string;
 
   useEffect(() => {
-    socket = io("http://localhost:4000");
+    socketRef.current = io("http://localhost:4000");
+
+    const socket = socketRef.current;
 
     socket.on("connect", () => {
       socket.emit("join_room", roomID);
@@ -76,10 +81,26 @@ const MultiPlayerGame = () => {
       console.log(msg);
     });
 
-    socket.on("game_start", (msg: string) => {
-      console.log(msg);
+    socket.on("game_start", ({ currentTurn, grid }) => {
+      console.log(currentTurn);
+      setGridData({
+        rows: grid.rows,
+        cols: grid.cols,
+      });
     });
 
+    socket.on("receive_move", ({ cellIndex, isCorrect, movie, claimedBy }) => {
+      if (isCorrect) {
+        setGridGuesses((prev) => ({
+          ...prev,
+          [cellIndex]: {
+            poster_path: movie.poster_path,
+            title: movie.title,
+            claimedBy: claimedBy,
+          },
+        }));
+      }
+    });
     return () => {
       socket.disconnect();
     };
@@ -93,7 +114,7 @@ const MultiPlayerGame = () => {
     setCellCol(colName);
   };
 
-  useEffect(() => {
+  /*useEffect(() => {
     function testGrid() {
       console.log("Zapocinjem generisanje grida: ");
       const res = generateRandomGrid();
@@ -103,6 +124,7 @@ const MultiPlayerGame = () => {
 
     testGrid();
   }, []);
+*/
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -189,13 +211,27 @@ const MultiPlayerGame = () => {
           movie.actors.some((actor) => actor === colValue) &&
           movie.genres.some((genre) => genre === genreToComapre)
         ) {
-          setGridGuesses((prev) => ({
-            ...prev,
-            [clickedCell!]: {
+          if (!socketRef.current) return;
+
+          socketRef.current.emit("make_move", {
+            roomID,
+            cellIndex: clickedCell,
+            isCorrect: true,
+            movie: {
               poster_path: movie.poster_path,
               title: movie.title,
             },
-          }));
+            claimedBy: role,
+          });
+        } else {
+          if (!socketRef.current) return;
+
+          socketRef.current.emit("make_move", {
+            roomID,
+            cellIndex: clickedCell,
+            isCorrect: false,
+            claimedBy: role,
+          });
         }
         break;
       }
@@ -211,13 +247,27 @@ const MultiPlayerGame = () => {
           movie.director === colValue &&
           movie.genres.some((genre) => genre === genreToComapre)
         ) {
-          setGridGuesses((prev) => ({
-            ...prev,
-            [clickedCell!]: {
+          if (!socketRef.current) return;
+
+          socketRef.current.emit("make_move", {
+            roomID,
+            cellIndex: clickedCell,
+            isCorrect: true,
+            movie: {
               poster_path: movie.poster_path,
               title: movie.title,
             },
-          }));
+            claimedBy: role,
+          });
+        } else {
+          if (!socketRef.current) return;
+
+          socketRef.current.emit("make_move", {
+            roomID,
+            cellIndex: clickedCell,
+            isCorrect: false,
+            claimedBy: role,
+          });
         }
         break;
       }
@@ -227,26 +277,53 @@ const MultiPlayerGame = () => {
           movie.actors.some((actor) => actor === colValue) &&
           movie.decade === rowValue
         ) {
-          setGridGuesses((prev) => ({
-            ...prev,
-            [clickedCell!]: {
+          if (!socketRef.current) return;
+
+          socketRef.current.emit("make_move", {
+            roomID,
+            cellIndex: clickedCell,
+            isCorrect: true,
+            movie: {
               poster_path: movie.poster_path,
               title: movie.title,
             },
-          }));
+            claimedBy: role,
+          });
+        } else {
+          if (!socketRef.current) return;
+
+          socketRef.current.emit("make_move", {
+            roomID,
+            cellIndex: clickedCell,
+            isCorrect: false,
+            claimedBy: role,
+          });
         }
         break;
       }
 
       case rowType === "decade" && colType === "director": {
         if (movie.director === colValue && movie.decade === rowValue) {
-          setGridGuesses((prev) => ({
-            ...prev,
-            [clickedCell!]: {
+          if (!socketRef.current) return;
+
+          socketRef.current.emit("make_move", {
+            roomID,
+            cellIndex: clickedCell,
+            isCorrect: true,
+            movie: {
               poster_path: movie.poster_path,
               title: movie.title,
             },
-          }));
+            claimedBy: role,
+          });
+        } else {
+          if (!socketRef.current) return;
+          socketRef.current.emit("make_move", {
+            roomID,
+            cellIndex: clickedCell,
+            isCorrect: false,
+            claimedBy: role,
+          });
         }
         break;
       }
