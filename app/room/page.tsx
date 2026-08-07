@@ -1,9 +1,22 @@
+"use client";
+
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { customAlphabet } from "nanoid";
+import { useRouter } from "next/navigation";
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />;
 
 const Room = () => {
+  const alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const nanoid = customAlphabet(alphabet, 6);
+  const router = useRouter();
+  const roomID = nanoid();
+
+  const handleCreateRoom = () => {
+    router.push(`/room/${roomID}`);
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950">
       <Header />
@@ -15,7 +28,7 @@ const Room = () => {
               type="text"
               className="bg-white py-2 px-4 sm:px-8 rounded-md border-2 border-blue-500"
             />
-            <button className="rounded-md py-2 px-8 bg-blue-500 border-2 border-blue-500">
+            <button className="rounded-md py-2 px-8 bg-blue-500 border-2 border-blue-500 cursor-pointer hover:bg-blue-700 hover:border-blue-700">
               Join
             </button>
           </div>
@@ -58,7 +71,10 @@ const Room = () => {
             </div>
           </div>
           <div className="flex items-center justify-end w-full">
-            <button className="rounded-md py-2 px-8 bg-blue-500 border-2 border-blue-500 ">
+            <button
+              className="rounded-md py-2 px-8 bg-blue-500 border-2 border-blue-500 cursor-pointer hover:bg-blue-700 hover:border-blue-700"
+              onClick={() => handleCreateRoom()}
+            >
               Create
             </button>
           </div>

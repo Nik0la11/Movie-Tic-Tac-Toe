@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { useEffect } from "react";
 import { generateRandomGrid } from "@/utils/tmdb";
-import { io } from "socket.io-client";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 
@@ -225,14 +224,6 @@ const SinglePlayerGame = () => {
     setSearchValue("");
     setSelectedMovie(null);
   };
-
-  const socket = io("http://localhost:4000");
-
-  useEffect(() => {
-    socket.on("connect", () => {
-      console.log(`You connected with id: ${socket.id}`);
-    });
-  }, []);
 
   if (!gridData) {
     return <div className="h-screen overflow-hidden"></div>;
