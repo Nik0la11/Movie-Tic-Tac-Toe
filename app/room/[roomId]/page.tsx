@@ -55,8 +55,6 @@ const MultiPlayerGame = () => {
   const [role, setRole] = useState("X");
   const socketRef = useRef<Socket | null>(null);
 
-  let socket: Socket;
-
   const params = useParams();
   const roomID = params.roomId as string;
 
@@ -100,8 +98,17 @@ const MultiPlayerGame = () => {
           },
         }));
       }
+      console.log(movie);
+      console.log(claimedBy);
+      console.log(cellIndex);
     });
+
     return () => {
+      socket.off("connect");
+      socket.off("room_error");
+      socket.off("room_joined");
+      socket.off("game_start");
+      socket.off("receive_move");
       socket.disconnect();
     };
   }, [roomID]);
