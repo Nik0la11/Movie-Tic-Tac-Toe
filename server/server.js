@@ -3,7 +3,7 @@ const { generateRandomGrid } = require("@/utils/tmdb");
 
 const io = require("socket.io")(4000, {
   cors: {
-    origin: ["http://localhost:3000"],
+    origin: "*",
   },
 });
 
@@ -25,6 +25,16 @@ io.on("connection", (socket) => {
 
     const role = numClients === 0 ? "X" : "O";
 
+    const newGrid = generateRandomGrid();
+
+    if (!gameStates[roomID]) {
+      gameStates[roomID] = {
+        turn: "X",
+        board: Array(9).fill(null),
+        grid: newGrid,
+      };
+    }
+
     socket.emit("room_joined", { roomID, role });
 
     if (numClients === 0) {
@@ -32,14 +42,6 @@ io.on("connection", (socket) => {
     }
 
     if (numClients === 1) {
-      const newGrid = generateRandomGrid();
-
-      gameStates[roomID] = {
-        turn: "X",
-        board: Array(9).fill(null),
-        grid: newGrid,
-      };
-
       io.to(roomID).emit("game_start", {
         currentTurn: "X",
         grid: gameStates[roomID].grid,
@@ -52,7 +54,10 @@ io.on("connection", (socket) => {
     ({ roomID, cellIndex, isCorrect, movie, claimedBy }) => {
       const gameState = gameStates[roomID];
 
-      if (!gameState || gameState.turn !== claimedBy) return;
+      if (!gameState || gameState.turn !== claimedBy) {
+        console.log(`Potez odbijen, nije red na ${claimedBy}`);
+        return;
+      }
 
       const nextTurn = claimedBy === "X" ? "O" : "X";
       gameState.turn = nextTurn;
@@ -63,14 +68,15 @@ io.on("connection", (socket) => {
           title: movie.title,
           claimedBy: claimedBy,
         };
-
-        io.to(roomID).emit("receive_move", {
-          cellIndex,
-          isCorrect,
-          movie,
-          claimedBy,
-        });
       }
+
+      io.to(roomID).emit("receive_move", {
+        cellIndex,
+        isCorrect,
+        movie: isCorrect ? movie : null,
+        claimedBy,
+        nextTurn,
+      });
     }
   );
 

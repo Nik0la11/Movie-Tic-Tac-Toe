@@ -8,6 +8,7 @@ import Footer from "@/app/components/Footer";
 import Header from "@/app/components/Header";
 import { useParams } from "next/navigation";
 import { useRef } from "react";
+import next from "next";
 
 interface Cell {
   id: number;
@@ -54,12 +55,13 @@ const MultiPlayerGame = () => {
   >({});
   const [role, setRole] = useState("X");
   const socketRef = useRef<Socket | null>(null);
+  const [currentTurn, setCurrentTurn] = useState<"X" | "O" | null>(null);
 
   const params = useParams();
   const roomID = params.roomId as string;
 
   useEffect(() => {
-    socketRef.current = io("http://localhost:4000");
+    socketRef.current = io(`${process.env.LOCALTUNNEL_URL}`);
 
     const socket = socketRef.current;
 
@@ -73,6 +75,7 @@ const MultiPlayerGame = () => {
 
     socket.on("room_joined", (data: { role: "X" | "O" }) => {
       console.log(data.role);
+      setRole(data.role);
     });
 
     socket.on("waiting", (msg: string) => {
@@ -85,23 +88,31 @@ const MultiPlayerGame = () => {
         rows: grid.rows,
         cols: grid.cols,
       });
+      setCurrentTurn(currentTurn);
     });
 
-    socket.on("receive_move", ({ cellIndex, isCorrect, movie, claimedBy }) => {
-      if (isCorrect) {
-        setGridGuesses((prev) => ({
-          ...prev,
-          [cellIndex]: {
-            poster_path: movie.poster_path,
-            title: movie.title,
-            claimedBy: claimedBy,
-          },
-        }));
+    socket.on(
+      "receive_move",
+      ({ cellIndex, isCorrect, movie, claimedBy, nextTurn }) => {
+        console.log(nextTurn);
+
+        if (isCorrect) {
+          setGridGuesses((prev) => ({
+            ...prev,
+            [cellIndex]: {
+              poster_path: movie.poster_path,
+              title: movie.title,
+              claimedBy: claimedBy,
+            },
+          }));
+        }
+
+        setCurrentTurn(nextTurn);
+        //console.log(movie);
+        //console.log(claimedBy);
+        //console.log(cellIndex);
       }
-      console.log(movie);
-      console.log(claimedBy);
-      console.log(cellIndex);
-    });
+    );
 
     return () => {
       socket.off("connect");
@@ -384,7 +395,7 @@ const MultiPlayerGame = () => {
                 <button
                   onClick={() => handleClick(cellId, rowName, colName)}
                   key={cellId}
-                  disabled={!!guessedMovie}
+                  disabled={!!guessedMovie || role != currentTurn}
                   className="relative cursor-pointer bg-slate-800 flex items-center justify-center p-4 break-words leading-tight aspect-[2/3] text-l"
                 >
                   {guessedMovie ? (
