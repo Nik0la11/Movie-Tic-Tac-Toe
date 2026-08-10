@@ -8,7 +8,6 @@ import Footer from "@/app/components/Footer";
 import Header from "@/app/components/Header";
 import { useParams } from "next/navigation";
 import { useRef } from "react";
-import next from "next";
 
 interface Cell {
   id: number;
@@ -61,7 +60,7 @@ const MultiPlayerGame = () => {
   const roomID = params.roomId as string;
 
   useEffect(() => {
-    socketRef.current = io(`${process.env.LOCALTUNNEL_URL}`);
+    socketRef.current = io(`http://127.0.0.1:4000`);
 
     const socket = socketRef.current;
 
@@ -406,6 +405,19 @@ const MultiPlayerGame = () => {
                     />
                   ) : (
                     <></>
+                  )}
+                  {guessedMovie?.claimedBy && (
+                    <div
+                      className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${
+                        guessedMovie?.claimedBy === "X"
+                          ? "bg-red-800/50 text-red-500"
+                          : "bg-blue-800/50 text-blue-500"
+                      }`}
+                    >
+                      <span className="text-6xl font-black">
+                        {guessedMovie?.claimedBy}
+                      </span>
+                    </div>
                   )}
                 </button>
               );

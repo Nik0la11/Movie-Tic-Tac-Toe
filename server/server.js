@@ -1,4 +1,3 @@
-const { default: next } = require("next");
 const { generateRandomGrid } = require("@/utils/tmdb");
 
 const io = require("socket.io")(4000, {
@@ -74,7 +73,7 @@ io.on("connection", (socket) => {
         cellIndex,
         isCorrect,
         movie: isCorrect ? movie : null,
-        claimedBy,
+        claimedBy: isCorrect ? claimedBy : null,
         nextTurn,
       });
     }
