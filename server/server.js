@@ -8,6 +8,44 @@ const io = require("socket.io")(4000, {
 
 const gameStates = {};
 
+const WINNING_COMBINATIONS = [
+  // kolone
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+
+  // redovi
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+
+  // dijagonale
+  [0, 4, 8],
+  [2, 4, 6],
+];
+
+const checkWinner = (board) => {
+  for (const combination of WINNING_COMBINATIONS) {
+    const [a, b, c] = combination;
+
+    if (
+      board[a]?.claimedBy &&
+      board[a].claimedBy === board[b]?.claimedBy &&
+      board[b].claimedBy === board[c]?.claimedBy
+    ) {
+      return { winner: board[a]?.claimedBy, winningLine: combination };
+    }
+  }
+
+  const isDraw = board.every((cell) => cell && cell.claimedBy);
+
+  if (isDraw) {
+    return { winner: "DRAW", winningLine: [] };
+  }
+
+  return null;
+};
+
 io.on("connection", (socket) => {
   console.log(`Korisnik povezan: ${socket.id}`);
 
@@ -67,6 +105,12 @@ io.on("connection", (socket) => {
           title: movie.title,
           claimedBy: claimedBy,
         };
+      }
+
+      const result = checkWinner(gameState.board);
+
+      if (result) {
+        io.to(roomID).emit("game_end", result);
       }
 
       io.to(roomID).emit("receive_move", {

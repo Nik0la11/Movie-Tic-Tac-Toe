@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { useEffect } from "react";
-import { generateRandomGrid } from "@/utils/tmdb";
 import { io, Socket } from "socket.io-client";
 import Footer from "@/app/components/Footer";
 import Header from "@/app/components/Header";
@@ -113,12 +112,17 @@ const MultiPlayerGame = () => {
       }
     );
 
+    socket.on("game_end", (result) => {
+      console.log(`${result.winner} has won!`);
+    });
+
     return () => {
       socket.off("connect");
       socket.off("room_error");
       socket.off("room_joined");
       socket.off("game_start");
       socket.off("receive_move");
+      socket.off("game_end");
       socket.disconnect();
     };
   }, [roomID]);
