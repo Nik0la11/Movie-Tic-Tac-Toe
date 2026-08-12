@@ -7,6 +7,7 @@ import Footer from "@/app/components/Footer";
 import Header from "@/app/components/Header";
 import { useParams } from "next/navigation";
 import { useRef } from "react";
+import { Copy } from "lucide-react";
 
 interface Cell {
   id: number;
@@ -54,6 +55,11 @@ const MultiPlayerGame = () => {
   const [role, setRole] = useState("X");
   const socketRef = useRef<Socket | null>(null);
   const [currentTurn, setCurrentTurn] = useState<"X" | "O" | null>(null);
+  const [waitingForFriend, setWaitingForFriend] = useState<true | false | null>(
+    null
+  );
+  const [currentUrl, setCurrentUrl] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const params = useParams();
   const roomID = params.roomId as string;
@@ -77,7 +83,7 @@ const MultiPlayerGame = () => {
     });
 
     socket.on("waiting", (msg: string) => {
-      console.log(msg);
+      setWaitingForFriend(true);
     });
 
     socket.on("game_start", ({ currentTurn, grid }) => {
@@ -87,6 +93,7 @@ const MultiPlayerGame = () => {
         cols: grid.cols,
       });
       setCurrentTurn(currentTurn);
+      setWaitingForFriend(false);
     });
 
     socket.on(
@@ -120,6 +127,7 @@ const MultiPlayerGame = () => {
       socket.off("connect");
       socket.off("room_error");
       socket.off("room_joined");
+      socket.off("waiting");
       socket.off("game_start");
       socket.off("receive_move");
       socket.off("game_end");
@@ -135,17 +143,23 @@ const MultiPlayerGame = () => {
     setCellCol(colName);
   };
 
-  /*useEffect(() => {
-    function testGrid() {
-      console.log("Zapocinjem generisanje grida: ");
-      const res = generateRandomGrid();
-      console.log(`kolone: ${res?.cols}, redovi: ${res?.rows}`);
-      setGridData(res as { rows: string[]; cols: string[] });
-    }
-
-    testGrid();
+  useEffect(() => {
+    const URL = window.location.href;
+    setCurrentUrl(URL);
   }, []);
-*/
+
+  const handleCopyLink = async () => {
+    try {
+      if (typeof window !== undefined) {
+        setCopied(true);
+        navigator.clipboard.writeText(currentUrl);
+
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } catch (err) {
+      console.error("Greska u kopiranju linka", err);
+    }
+  };
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -357,6 +371,41 @@ const MultiPlayerGame = () => {
     setSearchValue("");
     setSelectedMovie(null);
   };
+
+  if (waitingForFriend) {
+    return (
+      <div className="flex flex-col items-center justify-between min-h-screen bg-slate-950">
+        <Header />
+        <div className="flex flex-col items-center justify-center bg-slate-950 gap-4">
+          <div className="flex justify-center items-center gap-2">
+            <h3 className="text-xl uppercase text-slate-400">ROOM CODE:</h3>
+            <h3 className="text-xl uppercase">{roomID}</h3>
+          </div>
+          <h1 className="text-4xl">Share this link with a friend:</h1>
+          <button
+            onClick={() => handleCopyLink()}
+            className=" flex items-center justify-center gap-2 cursor-pointer rounded-md p-2 bg-blue-500"
+          >
+            <h2 className="text-xl  ">Copy link: {currentUrl}</h2>
+            <Copy className="w-5 h-5" />
+          </button>
+
+          <div
+            className={`fixed top-20 rounded-md p-3 bg-blue-500 font-semibold text-sm transtion-all ease-in duration-300 ${
+              copied ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            URL copied to clipboard
+          </div>
+
+          <h3 className="text-xl text-slate-400">
+            The game will start when you friend joins
+          </h3>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!gridData) {
     return <div className="h-screen overflow-hidden"></div>;
