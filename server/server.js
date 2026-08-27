@@ -52,11 +52,12 @@ io.on("connection", (socket) => {
   socket.on("join_room", (roomID) => {
     const room = io.sockets.adapter.rooms.get(roomID);
     const numClients = room ? room.size : 0;
-
-    if (numClients >= 2) {
+    /*
+    if (!room || numClients >= 2) {
       socket.emit("room_error", "Sorry, room does not exist");
       return;
     }
+    */
 
     socket.join(roomID);
 

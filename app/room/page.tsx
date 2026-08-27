@@ -4,7 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { customAlphabet } from "nanoid";
 import { useRouter } from "next/navigation";
-
+import { useState } from "react";
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />;
 
 const Room = () => {
@@ -12,6 +12,7 @@ const Room = () => {
   const nanoid = customAlphabet(alphabet, 6);
   const router = useRouter();
   const roomID = nanoid();
+  const [code, setCode] = useState("");
 
   const handleCreateRoom = () => {
     router.push(`/room/${roomID}`);
@@ -26,7 +27,10 @@ const Room = () => {
           <div className="flex justify-center items-center gap-2">
             <input
               type="text"
-              className="bg-white py-2 px-4 sm:px-8 rounded-md border-2 border-blue-500"
+              placeholder="ENTER CODE"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              className="bg-white py-2 px-4 sm:px-6 rounded-md border-2 border-blue-500 text-slate-800 font-bold"
             />
             <button className="rounded-md py-2 px-8 bg-blue-500 border-2 border-blue-500 cursor-pointer hover:bg-blue-700 hover:border-blue-700">
               Join
