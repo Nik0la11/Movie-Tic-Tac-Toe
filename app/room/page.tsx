@@ -13,6 +13,8 @@ const Room = () => {
   const router = useRouter();
   const roomID = nanoid();
   const [code, setCode] = useState("");
+  const [rounds, setRounds] = useState("");
+  const [time, setTime] = useState("");
 
   const handleCreateRoom = () => {
     router.push(`/room/${roomID}`);
@@ -43,33 +45,47 @@ const Room = () => {
           </div>
 
           <div className="flex items-center justify-start mb-2">
-            <div className="rounded-l-md border border-white pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36">
+            <div
+              className={`rounded-l-md border border-white pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36 cursor-pointer ${
+                rounds === "3" ? "bg-blue-500 border border-blue-500" : ""
+              }`}
+              onClick={() => setRounds("3")}
+            >
               <p className="text-sm sm:text-base">Best of 3</p>
             </div>
-            <div className="border-y-1 border-r-1 pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36">
+            <div
+              className="border pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36 bg-blue-500 border-blue-500 cursor-pointer"
+              onClick={() => setRounds("5")}
+            >
               <p className="text-sm sm:text-base">Best of 5</p>
             </div>
-            <div className="border-y-1 pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36">
+            <div
+              className="border-y-1 pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36 cursor-pointer"
+              onClick={() => setRounds("7")}
+            >
               <p className="text-sm sm:text-base">Best of 7</p>
             </div>
-            <div className="rounded-r-md border border-white pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36">
+            <div
+              className="rounded-r-md border border-white pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36 cursor-pointer"
+              onClick={() => setRounds("u")}
+            >
               <p className="text-sm sm:text-base">Unlimited</p>
             </div>
           </div>
           <div className="flex items-center justify-start mb-4">
-            <div className="rounded-l-md border border-white pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36">
+            <div className="rounded-l-md border border-white pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36 cursor-pointer">
               <h4 className="text-sm sm:text-base">Anti Cheat</h4>
               <p className="text-gray-400 text-xs">15s turns</p>
             </div>
-            <div className="border-y-1 border-r-1 pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36">
+            <div className="border-y-1 border-r-1 pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36 bg-blue-500 border-blue-500 cursor-pointer">
               <h4 className="text-sm sm:text-base">Normal</h4>
-              <p className="text-gray-400 text-xs">40s turns</p>
+              <p className="text-gray-200 text-xs">40s turns</p>
             </div>
-            <div className="border-y-1 pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36">
+            <div className="border-y-1 pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36 cursor-pointer">
               <h4 className="text-sm sm:text-base">Tactician</h4>
               <p className="text-gray-400 text-xs">60s turns</p>
             </div>
-            <div className="rounded-r-md border border-white pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36">
+            <div className="rounded-r-md border border-white pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36 cursor-pointer">
               <h4 className="text-sm sm:text-base">Unlimited</h4>
               <p className="text-gray-400 text-xs">No limit</p>
             </div>

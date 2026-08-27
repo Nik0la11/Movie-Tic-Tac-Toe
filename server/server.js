@@ -1,6 +1,12 @@
+const http = require("http");
+const { Server } = require("socket.io");
 const { generateRandomGrid } = require("@/utils/tmdb");
 
-const io = require("socket.io")(4000, {
+const PORT = process.env.PORT || 4000;
+
+const server = http.createServer();
+
+const io = new Server(server, {
   cors: {
     origin: "*",
   },
@@ -141,4 +147,8 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log(`Korisnik odspojen: ${socket.id}`);
   });
+});
+
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server pokrenut i sluša na portu ${PORT}`);
 });
