@@ -65,7 +65,12 @@ const MultiPlayerGame = () => {
   const roomID = params.roomId as string;
 
   useEffect(() => {
-    socketRef.current = io(`https://movie-tic-tac-toe.onrender.com`);
+    socketRef.current = io(`https://movie-tic-tac-toe.onrender.com`, {
+      transports: ["polling", "websocket"],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
 
     const socket = socketRef.current;
 
