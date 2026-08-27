@@ -65,7 +65,7 @@ const MultiPlayerGame = () => {
   const roomID = params.roomId as string;
 
   useEffect(() => {
-    socketRef.current = io(`http://127.0.0.1:4000`);
+    socketRef.current = io(`https://movie-tic-tac-toe.onrender.com`);
 
     const socket = socketRef.current;
 
