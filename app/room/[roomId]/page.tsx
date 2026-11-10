@@ -416,6 +416,31 @@ const MultiPlayerGame = () => {
 
       <Header />
 
+      {/* Status: ko je na potezu / rezultat */}
+      <div className="flex flex-col items-center gap-1 mb-4 px-4 text-center">
+        {gameResult ? (
+          <p
+            className={`text-2xl font-bold ${
+              gameResult.winner === "DRAW"
+                ? "text-slate-300"
+                : gameResult.winner === role
+                ? "text-green-400"
+                : "text-red-400"
+            }`}
+          >
+            {gameResult.winner === "DRAW"
+              ? "It's a draw!"
+              : gameResult.winner === role
+              ? "You won!"
+              : "You lost!"}
+          </p>
+        ) : (
+          <p className="text-2xl font-bold text-white">
+            {currentTurn === role ? "Your turn" : "Their turn"}
+          </p>
+        )}
+      </div>
+
       {/* Grid */}
       <div className="grid grid-cols-4 gap-1 max-w-md w-full mx-auto md:ml-122">
         <div className="bg-transparent p-4"></div>
@@ -439,6 +464,8 @@ const MultiPlayerGame = () => {
               const cellId = rowIndex * 3 + colIndex;
 
               const guessedMovie = gridGuesses[cellId];
+              const isWinningCell =
+                gameResult?.winningLine.includes(cellId) ?? false;
 
               return (
                 <button
@@ -451,7 +478,13 @@ const MultiPlayerGame = () => {
                     !isConnected ||
                     !opponentOnline
                   }
-                  className="relative cursor-pointer bg-slate-800 flex items-center justify-center p-4 break-words leading-tight aspect-[2/3] text-l"
+                  className={`relative cursor-pointer disabled:cursor-default bg-slate-800 flex items-center justify-center p-4 break-words leading-tight aspect-[2/3] text-l transition-all duration-300 ${
+                    isWinningCell
+                      ? "ring-4 ring-yellow-400 z-10 scale-105"
+                      : gameResult && gameResult.winner !== "DRAW"
+                      ? "opacity-50"
+                      : ""
+                  }`}
                 >
                   {guessedMovie ? (
                     <img
@@ -481,16 +514,6 @@ const MultiPlayerGame = () => {
           </React.Fragment>
         ))}
       </div>
-
-      {gameResult && (
-        <p className="mt-4 text-2xl font-bold">
-          {gameResult.winner === "DRAW"
-            ? "It's a draw!"
-            : gameResult.winner === role
-            ? "You won!"
-            : "You lost!"}
-        </p>
-      )}
 
       {!isConnected ? (
         <p className="mt-4 text-yellow-400">

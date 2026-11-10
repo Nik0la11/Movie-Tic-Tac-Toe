@@ -17,6 +17,16 @@ const Room = () => {
   const [rounds, setRounds] = useState("");
   const [time, setTime] = useState("");
 
+  const handleJoinRoom = () => {
+    // Kodovi su velika slova i cifre, pa prihvatamo i "ab3k9z"
+    const roomCode = code.trim().toUpperCase();
+    if (!roomCode) return;
+
+    // Korisnik je sam kliknuo "Join", pa ulazi bez dodatnih provjera
+    markRoomJoined(roomCode);
+    router.push(`/room/${encodeURIComponent(roomCode)}`);
+  };
+
   const handleCreateRoom = () => {
     // Kreator ulazi u sobu bez klika na "Join game"
     markRoomJoined(roomID);
@@ -35,9 +45,17 @@ const Room = () => {
               placeholder="ENTER CODE"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              className="bg-white py-2 px-4 sm:px-6 rounded-md border-2 border-blue-500 text-slate-800 font-bold"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleJoinRoom();
+              }}
+              maxLength={6}
+              className="bg-white py-2 px-4 sm:px-6 rounded-md border-2 border-blue-500 text-slate-800 font-bold uppercase"
             />
-            <button className="rounded-md py-2 px-8 bg-blue-500 border-2 border-blue-500 cursor-pointer hover:bg-blue-700 hover:border-blue-700">
+            <button
+              onClick={handleJoinRoom}
+              disabled={!code.trim()}
+              className="rounded-md py-2 px-8 bg-blue-500 border-2 border-blue-500 cursor-pointer hover:bg-blue-700 hover:border-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Join
             </button>
           </div>
