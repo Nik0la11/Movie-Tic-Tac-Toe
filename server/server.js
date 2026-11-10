@@ -143,6 +143,7 @@ const createGameState = () => ({
   seats: { X: null, O: null }, // { playerId, socketId, connected }
   result: null,
   pendingMove: false,
+  moveCount: 0,
   cleanupTimer: null,
 });
 
@@ -233,13 +234,19 @@ io.on("connection", (socket) => {
     //    (npr. prijatelj prvo otvori link u Messenger browseru pa u Chrome-u)
     if (!role) role = ["X", "O"].find((r) => !seats[r].connected);
 
+    // 4) Dok niko nije odigrao potez, novi gost zamjenjuje gosta (O).
+    //    Ako je mjesto zauzeo program koji je sam otvorio link (preview u
+    //    chat aplikaciji), pravi igrac ga izbaci. Kreator (X) se nikad ne mijenja.
+    if (!role && gameState.moveCount === 0) role = "O";
+
     if (!role) {
       socket.emit("room_error", "This room is full");
       scheduleCleanupIfEmpty(roomID);
       return;
     }
 
-    // Isti igrac je otvoren i na drugoj konekciji - stara gubi mjesto
+    // Prethodna konekcija na ovom mjestu gubi mjesto
+    // (isti igrac u drugom tabu, ili zamijenjeni gost iz koraka 4)
     const previous = seats[role];
     if (previous?.connected && previous.socketId !== socket.id) {
       const oldSocket = io.sockets.sockets.get(previous.socketId);
@@ -247,7 +254,12 @@ io.on("connection", (socket) => {
         oldSocket.data.roomID = null;
         oldSocket.data.role = null;
         oldSocket.leave(roomID);
-        oldSocket.emit("room_error", "This game was opened in another tab");
+        oldSocket.emit(
+          "room_error",
+          previous.playerId === playerId
+            ? "This game was opened in another tab"
+            : "Another player joined this room"
+        );
       }
     }
 
@@ -255,6 +267,11 @@ io.on("connection", (socket) => {
     gameState.cleanupTimer = null;
 
     seats[role] = { playerId, socketId: socket.id, connected: true };
+    console.log(
+      `Soba ${roomID}: ${role} = ${playerId} (${
+        socket.handshake.headers["user-agent"] || "nepoznat user-agent"
+      })`
+    );
     socket.data.roomID = roomID;
     socket.data.role = role;
     socket.join(roomID);
@@ -334,6 +351,7 @@ io.on("connection", (socket) => {
 
     const nextTurn = role === "X" ? "O" : "X";
     gameState.turn = nextTurn;
+    gameState.moveCount++;
 
     io.to(roomID).emit("receive_move", {
       cellIndex,

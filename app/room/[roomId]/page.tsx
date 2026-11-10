@@ -9,7 +9,13 @@ import { useParams } from "next/navigation";
 import { useRef } from "react";
 import { Copy } from "lucide-react";
 import Link from "next/link";
-import { nanoid } from "nanoid";
+import {
+  getPlayerId,
+  hasJoinedRoom,
+  looksLikeBot,
+  markRoomJoined,
+  whenPageIsShown,
+} from "@/utils/roomSession";
 
 interface Cell {
   id: number;
@@ -35,24 +41,7 @@ type BoardCell = {
   claimedBy: "X" | "O";
 } | null;
 
-type RoomStatus = "connecting" | "waiting" | "playing" | "error";
-
-// Stalni ID igraca za ovaj tab. Cuva se u sessionStorage, pa prezivi
-// refresh i ponovno povezivanje - server po njemu vraca igraca na njegovo mjesto.
-const PLAYER_ID_KEY = "movie-ttt-player-id";
-
-const getPlayerId = () => {
-  try {
-    let id = sessionStorage.getItem(PLAYER_ID_KEY);
-    if (!id) {
-      id = nanoid();
-      sessionStorage.setItem(PLAYER_ID_KEY, id);
-    }
-    return id;
-  } catch {
-    return nanoid();
-  }
-};
+type RoomStatus = "connecting" | "invite" | "waiting" | "playing" | "error";
 
 const MultiPlayerGame = () => {
   const [gridData, setGridData] = useState<{
@@ -79,6 +68,11 @@ const MultiPlayerGame = () => {
   >({});
   const [role, setRole] = useState("X");
   const socketRef = useRef<Socket | null>(null);
+  // Da li ovaj tab treba da zauzme mjesto u sobi. Kreator ulazi automatski,
+  // a ostali tek kad kliknu "Join game" - tako programi koji sami otvore link
+  // (preview u Viber/Messenger-u, prerender u browseru) ne zauzmu mjesto.
+  const joinRequestedRef = useRef(false);
+  const playerIdRef = useRef("");
   const [currentTurn, setCurrentTurn] = useState<"X" | "O" | null>(null);
   const [roomStatus, setRoomStatus] = useState<RoomStatus>("connecting");
   const [roomError, setRoomError] = useState("");
@@ -95,6 +89,7 @@ const MultiPlayerGame = () => {
 
   useEffect(() => {
     const playerId = getPlayerId();
+    playerIdRef.current = playerId;
 
     // Besplatni Render server se budi i do minut, zato ne odustajemo od povezivanja
     const socket = io(
@@ -108,6 +103,26 @@ const MultiPlayerGame = () => {
     );
     socketRef.current = socket;
 
+    const joinNow = () => {
+      joinRequestedRef.current = true;
+      if (socket.connected) socket.emit("join_room", { roomID, playerId });
+      // Ako jos nije povezan, join_room se salje u "connect" handleru
+    };
+
+    let stopWaiting = () => {};
+
+    if (hasJoinedRoom(roomID)) {
+      // Kreator sobe ili igrac koji je vec bio u sobi (refresh)
+      joinNow();
+    } else if (looksLikeBot()) {
+      // Vjerovatno program koji pravi pregled linka - ne zauzima mjesto.
+      // Ako je ipak covjek, moze da klikne "Join game".
+      setRoomStatus("invite");
+    } else {
+      // Pravi posjetilac: ulazi automatski cim stranica stvarno bude prikazana
+      stopWaiting = whenPageIsShown(joinNow);
+    }
+
     // Ako povezivanje traje duze od par sekundi, objasni korisniku zasto
     const slowTimer = setTimeout(() => setSlowConnection(true), 4000);
 
@@ -116,7 +131,9 @@ const MultiPlayerGame = () => {
       setSlowConnection(false);
       clearTimeout(slowTimer);
       // Salje se i pri svakom ponovnom povezivanju - server nas vraca na isto mjesto
-      socket.emit("join_room", { roomID, playerId });
+      if (joinRequestedRef.current) {
+        socket.emit("join_room", { roomID, playerId });
+      }
     });
 
     socket.on("disconnect", () => {
@@ -131,6 +148,7 @@ const MultiPlayerGame = () => {
 
     socket.on("room_joined", (data: { role: "X" | "O" }) => {
       setRole(data.role);
+      markRoomJoined(roomID);
     });
 
     socket.on("waiting", () => {
@@ -203,11 +221,24 @@ const MultiPlayerGame = () => {
     });
 
     return () => {
+      stopWaiting();
       clearTimeout(slowTimer);
       socket.removeAllListeners();
       socket.disconnect();
     };
   }, [roomID]);
+
+  // Samo za rijedak slucaj kad looksLikeBot() pogrijesi za pravog korisnika
+  const handleJoinGame = () => {
+    joinRequestedRef.current = true;
+    setRoomStatus("connecting");
+
+    const socket = socketRef.current;
+    if (socket?.connected) {
+      socket.emit("join_room", { roomID, playerId: playerIdRef.current });
+    }
+    // Ako jos nije povezan, join_room se salje u "connect" handleru
+  };
 
   const handleClick = (cellId: number) => {
     console.log(`Kliknuto je polje sa ID: ${cellId}`);
@@ -296,6 +327,28 @@ const MultiPlayerGame = () => {
           >
             Create a new room
           </Link>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (roomStatus === "invite") {
+    return (
+      <div className="flex flex-col items-center justify-between min-h-screen bg-slate-950">
+        <Header />
+        <div className="flex flex-col items-center justify-center gap-4 px-4 text-center">
+          <h1 className="text-3xl">You have been invited to a game!</h1>
+          <div className="flex justify-center items-center gap-2">
+            <h3 className="text-xl uppercase text-slate-400">ROOM CODE:</h3>
+            <h3 className="text-xl uppercase">{roomID}</h3>
+          </div>
+          <button
+            onClick={handleJoinGame}
+            className="rounded-md py-2 px-8 bg-blue-500 hover:bg-blue-700 cursor-pointer text-xl"
+          >
+            Join game
+          </button>
         </div>
         <Footer />
       </div>

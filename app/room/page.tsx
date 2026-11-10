@@ -5,6 +5,7 @@ import Footer from "../components/Footer";
 import { customAlphabet } from "nanoid";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { markRoomJoined } from "@/utils/roomSession";
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />;
 
 const Room = () => {
@@ -17,6 +18,8 @@ const Room = () => {
   const [time, setTime] = useState("");
 
   const handleCreateRoom = () => {
+    // Kreator ulazi u sobu bez klika na "Join game"
+    markRoomJoined(roomID);
     router.push(`/room/${roomID}`);
   };
 
