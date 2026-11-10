@@ -8,6 +8,8 @@ import Header from "@/app/components/Header";
 import { useParams } from "next/navigation";
 import { useRef } from "react";
 import { Copy } from "lucide-react";
+import Link from "next/link";
+import { nanoid } from "nanoid";
 
 interface Cell {
   id: number;
@@ -26,6 +28,31 @@ interface GameResult {
   winner: "X" | "O" | "DRAW";
   winningLine: number[];
 }
+
+type BoardCell = {
+  poster_path: string;
+  title: string;
+  claimedBy: "X" | "O";
+} | null;
+
+type RoomStatus = "connecting" | "waiting" | "playing" | "error";
+
+// Stalni ID igraca za ovaj tab. Cuva se u sessionStorage, pa prezivi
+// refresh i ponovno povezivanje - server po njemu vraca igraca na njegovo mjesto.
+const PLAYER_ID_KEY = "movie-ttt-player-id";
+
+const getPlayerId = () => {
+  try {
+    let id = sessionStorage.getItem(PLAYER_ID_KEY);
+    if (!id) {
+      id = nanoid();
+      sessionStorage.setItem(PLAYER_ID_KEY, id);
+    }
+    return id;
+  } catch {
+    return nanoid();
+  }
+};
 
 const MultiPlayerGame = () => {
   const [gridData, setGridData] = useState<{
@@ -53,9 +80,11 @@ const MultiPlayerGame = () => {
   const [role, setRole] = useState("X");
   const socketRef = useRef<Socket | null>(null);
   const [currentTurn, setCurrentTurn] = useState<"X" | "O" | null>(null);
-  const [waitingForFriend, setWaitingForFriend] = useState<true | false | null>(
-    null
-  );
+  const [roomStatus, setRoomStatus] = useState<RoomStatus>("connecting");
+  const [roomError, setRoomError] = useState("");
+  const [isConnected, setIsConnected] = useState(false);
+  const [slowConnection, setSlowConnection] = useState(false);
+  const [playersOnline, setPlayersOnline] = useState({ X: true, O: true });
   const [currentUrl, setCurrentUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
@@ -65,50 +94,90 @@ const MultiPlayerGame = () => {
   const roomID = params.roomId as string;
 
   useEffect(() => {
-    socketRef.current = io(
+    const playerId = getPlayerId();
+
+    // Besplatni Render server se budi i do minut, zato ne odustajemo od povezivanja
+    const socket = io(
       process.env.NEXT_PUBLIC_SOCKET_URL ?? "http://localhost:4000",
       {
         transports: ["polling", "websocket"],
         reconnection: true,
-        reconnectionAttempts: 5,
         reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
       }
     );
+    socketRef.current = socket;
 
-    const socket = socketRef.current;
+    // Ako povezivanje traje duze od par sekundi, objasni korisniku zasto
+    const slowTimer = setTimeout(() => setSlowConnection(true), 4000);
 
     socket.on("connect", () => {
-      socket.emit("join_room", roomID);
+      setIsConnected(true);
+      setSlowConnection(false);
+      clearTimeout(slowTimer);
+      // Salje se i pri svakom ponovnom povezivanju - server nas vraca na isto mjesto
+      socket.emit("join_room", { roomID, playerId });
+    });
+
+    socket.on("disconnect", () => {
+      setIsConnected(false);
     });
 
     socket.on("room_error", (msg: string) => {
-      console.log(msg);
+      setRoomError(msg);
+      setRoomStatus("error");
+      socket.disconnect();
     });
 
     socket.on("room_joined", (data: { role: "X" | "O" }) => {
-      console.log(data.role);
       setRole(data.role);
     });
 
-    socket.on("waiting", (msg: string) => {
-      setWaitingForFriend(true);
+    socket.on("waiting", () => {
+      setRoomStatus("waiting");
     });
 
-    socket.on("game_start", ({ currentTurn, grid }) => {
-      console.log(currentTurn);
-      setGridData({
-        rows: grid.rows,
-        cols: grid.cols,
-      });
-      setCurrentTurn(currentTurn);
-      setWaitingForFriend(false);
+    socket.on(
+      "game_start",
+      ({
+        currentTurn,
+        grid,
+        board,
+        result,
+        players,
+      }: {
+        currentTurn: "X" | "O";
+        grid: { rows: string[]; cols: string[] };
+        board: BoardCell[];
+        result: GameResult | null;
+        players: { X: boolean; O: boolean };
+      }) => {
+        setGridData({ rows: grid.rows, cols: grid.cols });
+        setCurrentTurn(currentTurn);
+
+        // Tabla sa servera (bitno kad se igrac vrati usred igre)
+        const guesses: Record<
+          number,
+          { poster_path: string; title: string; claimedBy: "X" | "O" }
+        > = {};
+        board.forEach((cell, index) => {
+          if (cell) guesses[index] = cell;
+        });
+        setGridGuesses(guesses);
+
+        setGameResult(result);
+        setPlayersOnline(players);
+        setRoomStatus("playing");
+      }
+    );
+
+    socket.on("players_status", (players: { X: boolean; O: boolean }) => {
+      setPlayersOnline(players);
     });
 
     socket.on(
       "receive_move",
       ({ cellIndex, isCorrect, movie, claimedBy, nextTurn }) => {
-        console.log(nextTurn);
-
         if (isCorrect) {
           setGridGuesses((prev) => ({
             ...prev,
@@ -121,14 +190,10 @@ const MultiPlayerGame = () => {
         }
 
         setCurrentTurn(nextTurn);
-        //console.log(movie);
-        //console.log(claimedBy);
-        //console.log(cellIndex);
       }
     );
 
     socket.on("game_end", (result: GameResult) => {
-      console.log(`${result.winner} has won!`);
       setGameResult(result);
     });
 
@@ -138,14 +203,8 @@ const MultiPlayerGame = () => {
     });
 
     return () => {
-      socket.off("connect");
-      socket.off("room_error");
-      socket.off("room_joined");
-      socket.off("waiting");
-      socket.off("game_start");
-      socket.off("receive_move");
-      socket.off("game_end");
-      socket.off("move_rejected");
+      clearTimeout(slowTimer);
+      socket.removeAllListeners();
       socket.disconnect();
     };
   }, [roomID]);
@@ -213,7 +272,6 @@ const MultiPlayerGame = () => {
     if (!socketRef.current || clickedCell === null) return;
 
     socketRef.current.emit("make_move", {
-      roomID,
       cellIndex: clickedCell,
       movieId: movie.id,
     });
@@ -223,7 +281,46 @@ const MultiPlayerGame = () => {
     setSelectedMovie(null);
   };
 
-  if (waitingForFriend) {
+  const opponent = role === "X" ? "O" : "X";
+  const opponentOnline = playersOnline[opponent as "X" | "O"];
+
+  if (roomStatus === "error") {
+    return (
+      <div className="flex flex-col items-center justify-between min-h-screen bg-slate-950">
+        <Header />
+        <div className="flex flex-col items-center justify-center gap-4 px-4 text-center">
+          <h1 className="text-3xl">{roomError}</h1>
+          <Link
+            href="/room"
+            className="rounded-md py-2 px-8 bg-blue-500 hover:bg-blue-700"
+          >
+            Create a new room
+          </Link>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (roomStatus === "connecting") {
+    return (
+      <div className="flex flex-col items-center justify-between min-h-screen bg-slate-950">
+        <Header />
+        <div className="flex flex-col items-center justify-center gap-3 px-4 text-center">
+          <h1 className="text-2xl">Connecting to game server...</h1>
+          {slowConnection && (
+            <p className="text-slate-400 max-w-md">
+              The server may be waking up, this can take up to a minute. Keep
+              this page open.
+            </p>
+          )}
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (roomStatus === "waiting") {
     return (
       <div className="flex flex-col items-center justify-between min-h-screen bg-slate-950">
         <Header />
@@ -258,9 +355,7 @@ const MultiPlayerGame = () => {
     );
   }
 
-  if (!gridData) {
-    return <div className="h-screen overflow-hidden"></div>;
-  }
+  if (!gridData) return null;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950">
@@ -297,7 +392,11 @@ const MultiPlayerGame = () => {
                   onClick={() => handleClick(cellId)}
                   key={cellId}
                   disabled={
-                    !!guessedMovie || role != currentTurn || !!gameResult
+                    !!guessedMovie ||
+                    role != currentTurn ||
+                    !!gameResult ||
+                    !isConnected ||
+                    !opponentOnline
                   }
                   className="relative cursor-pointer bg-slate-800 flex items-center justify-center p-4 break-words leading-tight aspect-[2/3] text-l"
                 >
@@ -338,6 +437,19 @@ const MultiPlayerGame = () => {
             ? "You won!"
             : "You lost!"}
         </p>
+      )}
+
+      {!isConnected ? (
+        <p className="mt-4 text-yellow-400">
+          Connection lost, reconnecting...
+        </p>
+      ) : (
+        !opponentOnline &&
+        !gameResult && (
+          <p className="mt-4 text-yellow-400">
+            Opponent disconnected, waiting for them to come back...
+          </p>
+        )
       )}
 
       {moveError && (

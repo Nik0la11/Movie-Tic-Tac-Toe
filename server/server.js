@@ -9,6 +9,10 @@ const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 // Koliko glumaca sa vrha cast liste se racuna (isto kao u scripts/fetch-top-rated-movies.ts)
 const TOP_ACTORS_COUNT = 4;
 
+// Koliko dugo soba ostaje u memoriji kad su svi igraci odspojeni
+// (da bi refresh ili kratak prekid mreze mogli da nastave istu igru)
+const ROOM_CLEANUP_MS = 2 * 60 * 1000;
+
 // Nazivi zanrova u gridu -> TMDB genre ID
 const GENRE_IDS = {
   Action: 28,
@@ -130,72 +134,165 @@ const matchesCriterion = (movie, criterion) => {
   }
 };
 
+const createGameState = () => ({
+  turn: "X",
+  board: Array(9).fill(null),
+  grid: generateRandomGrid(),
+  // Mjesta u igri. Igrac se prepoznaje po playerId (stalan po tabu),
+  // a ne po socket.id koji se mijenja pri svakom ponovnom povezivanju.
+  seats: { X: null, O: null }, // { playerId, socketId, connected }
+  result: null,
+  pendingMove: false,
+  cleanupTimer: null,
+});
+
+const playersStatus = (gameState) => ({
+  X: !!gameState.seats.X?.connected,
+  O: !!gameState.seats.O?.connected,
+});
+
+const scheduleCleanupIfEmpty = (roomID) => {
+  const gameState = gameStates[roomID];
+  if (!gameState) return;
+
+  const anyoneConnected = Object.values(gameState.seats).some(
+    (seat) => seat?.connected
+  );
+  if (anyoneConnected) return;
+
+  clearTimeout(gameState.cleanupTimer);
+  gameState.cleanupTimer = setTimeout(() => {
+    if (gameStates[roomID] === gameState) {
+      delete gameStates[roomID];
+      console.log(`Soba ${roomID} obrisana`);
+    }
+  }, ROOM_CLEANUP_MS);
+};
+
+// Vraca sobu i ulogu igraca za ovaj socket, ili null ako socket nije igrac
+const getPlayer = (socket) => {
+  const { roomID, role } = socket.data;
+  const gameState = roomID && gameStates[roomID];
+
+  if (!gameState || !role || gameState.seats[role]?.socketId !== socket.id) {
+    return null;
+  }
+
+  return { roomID, gameState, role };
+};
+
+const leaveSeat = (socket) => {
+  const player = getPlayer(socket);
+  socket.data.roomID = null;
+  socket.data.role = null;
+  if (!player) return;
+
+  const { roomID, gameState, role } = player;
+  gameState.seats[role].connected = false;
+  socket.leave(roomID);
+
+  io.to(roomID).emit("players_status", playersStatus(gameState));
+  scheduleCleanupIfEmpty(roomID);
+};
+
 io.on("connection", (socket) => {
   console.log(`Korisnik povezan: ${socket.id}`);
 
-  socket.on("join_room", (roomID) => {
-    if (typeof roomID !== "string" || !roomID) {
-      socket.emit("room_error", "Invalid room");
+  socket.on("join_room", ({ roomID, playerId } = {}) => {
+    if (
+      typeof roomID !== "string" ||
+      !roomID ||
+      roomID.length > 64 ||
+      typeof playerId !== "string" ||
+      !playerId ||
+      playerId.length > 64
+    ) {
+      socket.emit("room_error", "Invalid room link");
       return;
+    }
+
+    // Socket moze biti samo u jednoj sobi
+    if (socket.data.roomID && socket.data.roomID !== roomID) {
+      leaveSeat(socket);
     }
 
     if (!gameStates[roomID]) {
-      gameStates[roomID] = {
-        turn: "X",
-        board: Array(9).fill(null),
-        grid: generateRandomGrid(),
-        players: {}, // socket.id -> "X" | "O"
-        result: null,
-        pendingMove: false,
-      };
+      gameStates[roomID] = createGameState();
     }
 
     const gameState = gameStates[roomID];
+    const { seats } = gameState;
 
-    // Isti socket je vec u sobi (npr. dupli emit) - samo mu ponovo javi ulogu
-    if (gameState.players[socket.id]) {
-      socket.emit("room_joined", { roomID, role: gameState.players[socket.id] });
+    // 1) Igrac se vraca (refresh, novi socket poslije prekida mreze)
+    let role = ["X", "O"].find((r) => seats[r]?.playerId === playerId);
+
+    // 2) Novi igrac na slobodno mjesto
+    if (!role) role = ["X", "O"].find((r) => !seats[r]);
+
+    // 3) Novi igrac preuzima mjesto igraca koji je odspojen
+    //    (npr. prijatelj prvo otvori link u Messenger browseru pa u Chrome-u)
+    if (!role) role = ["X", "O"].find((r) => !seats[r].connected);
+
+    if (!role) {
+      socket.emit("room_error", "This room is full");
+      scheduleCleanupIfEmpty(roomID);
       return;
     }
 
-    const takenRoles = Object.values(gameState.players);
-
-    if (takenRoles.length >= 2) {
-      socket.emit("room_error", "Sorry, room is full");
-      return;
+    // Isti igrac je otvoren i na drugoj konekciji - stara gubi mjesto
+    const previous = seats[role];
+    if (previous?.connected && previous.socketId !== socket.id) {
+      const oldSocket = io.sockets.sockets.get(previous.socketId);
+      if (oldSocket) {
+        oldSocket.data.roomID = null;
+        oldSocket.data.role = null;
+        oldSocket.leave(roomID);
+        oldSocket.emit("room_error", "This game was opened in another tab");
+      }
     }
 
-    const role = takenRoles.includes("X") ? "O" : "X";
-    gameState.players[socket.id] = role;
+    clearTimeout(gameState.cleanupTimer);
+    gameState.cleanupTimer = null;
 
+    seats[role] = { playerId, socketId: socket.id, connected: true };
+    socket.data.roomID = roomID;
+    socket.data.role = role;
     socket.join(roomID);
+
     socket.emit("room_joined", { roomID, role });
 
-    if (takenRoles.length === 0) {
-      io.to(roomID).emit("waiting", "Waiting for friend to join!");
-    } else {
-      io.to(roomID).emit("game_start", {
-        currentTurn: gameState.turn,
-        grid: gameState.grid,
-      });
+    // Igra pocinje tek kad su oba mjesta popunjena
+    if (!seats.X || !seats.O) {
+      socket.emit("waiting", "Waiting for friend to join!");
+      return;
     }
+
+    // Saljemo cijelo stanje, da bi i igrac koji se vratio vidio tablu
+    io.to(roomID).emit("game_start", {
+      currentTurn: gameState.turn,
+      grid: gameState.grid,
+      board: gameState.board,
+      result: gameState.result,
+      players: playersStatus(gameState),
+    });
   });
 
-  socket.on("make_move", async ({ roomID, cellIndex, movieId } = {}) => {
+  socket.on("make_move", async ({ cellIndex, movieId } = {}) => {
     const reject = (reason) => {
       console.log(`Potez odbijen (${socket.id}): ${reason}`);
       socket.emit("move_rejected", { reason });
     };
 
-    const gameState = gameStates[roomID];
+    const player = getPlayer(socket);
 
-    if (!gameState) return reject("Game does not exist");
+    if (!player) return reject("You are not a player in this room");
 
-    const role = gameState.players[socket.id];
+    const { roomID, gameState, role } = player;
+    const status = playersStatus(gameState);
 
-    if (!role) return reject("You are not a player in this room");
-    if (Object.keys(gameState.players).length < 2)
+    if (!gameState.seats.X || !gameState.seats.O)
       return reject("Waiting for opponent");
+    if (!status.X || !status.O) return reject("Opponent is disconnected");
     if (gameState.result) return reject("Game is over");
     if (gameState.turn !== role) return reject("Not your turn");
     if (gameState.pendingMove) return reject("Move already in progress");
@@ -217,7 +314,7 @@ io.on("connection", (socket) => {
       return reject("Could not verify movie, try again");
     }
 
-    // Soba je mogla biti obrisana (ili resetovana) dok smo cekali TMDB
+    // Soba je mogla biti obrisana dok smo cekali TMDB
     if (gameStates[roomID] !== gameState) return;
     gameState.pendingMove = false;
 
@@ -256,25 +353,9 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("disconnecting", () => {
-    socket.rooms.forEach((roomId) => {
-      if (roomId === socket.id) return;
-
-      const gameState = gameStates[roomId];
-      if (gameState) delete gameState.players[socket.id];
-
-      socket.to(roomId).emit("player_left", "Opponent left the game!");
-
-      const room = io.sockets.adapter.rooms.get(roomId);
-
-      if (!room || room.size <= 1) {
-        delete gameStates[roomId];
-      }
-    });
-  });
-
   socket.on("disconnect", () => {
     console.log(`Korisnik odspojen: ${socket.id}`);
+    leaveSeat(socket);
   });
 });
 
