@@ -20,11 +20,11 @@ interface Movie {
   id: number;
   title: string;
   poster_path: string;
-  year: number;
-  decade: string;
-  director: string;
-  genres: string[];
-  actors: string[];
+}
+
+interface GameResult {
+  winner: "X" | "O" | "DRAW";
+  winningLine: number[];
 }
 
 const MultiPlayerGame = () => {
@@ -47,8 +47,6 @@ const MultiPlayerGame = () => {
   const [searchMovies, setSearchMovies] = useState<Movie[]>([]);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [clickedCell, setClickedCell] = useState<number | null>(null);
-  const [cellRow, setCellRow] = useState("");
-  const [cellCol, setCellCol] = useState("");
   const [gridGuesses, setGridGuesses] = useState<
     Record<number, { poster_path: string; title: string; claimedBy: "X" | "O" }>
   >({});
@@ -60,17 +58,22 @@ const MultiPlayerGame = () => {
   );
   const [currentUrl, setCurrentUrl] = useState("");
   const [copied, setCopied] = useState(false);
+  const [gameResult, setGameResult] = useState<GameResult | null>(null);
+  const [moveError, setMoveError] = useState<string | null>(null);
 
   const params = useParams();
   const roomID = params.roomId as string;
 
   useEffect(() => {
-    socketRef.current = io(`https://movie-tic-tac-toe.onrender.com`, {
-      transports: ["polling", "websocket"],
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
+    socketRef.current = io(
+      process.env.NEXT_PUBLIC_SOCKET_URL ?? "http://localhost:4000",
+      {
+        transports: ["polling", "websocket"],
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+      }
+    );
 
     const socket = socketRef.current;
 
@@ -124,8 +127,14 @@ const MultiPlayerGame = () => {
       }
     );
 
-    socket.on("game_end", (result) => {
+    socket.on("game_end", (result: GameResult) => {
       console.log(`${result.winner} has won!`);
+      setGameResult(result);
+    });
+
+    socket.on("move_rejected", ({ reason }: { reason: string }) => {
+      setMoveError(reason);
+      setTimeout(() => setMoveError(null), 3000);
     });
 
     return () => {
@@ -136,16 +145,15 @@ const MultiPlayerGame = () => {
       socket.off("game_start");
       socket.off("receive_move");
       socket.off("game_end");
+      socket.off("move_rejected");
       socket.disconnect();
     };
   }, [roomID]);
 
-  const handleClick = (cellId: number, rowName: string, colName: string) => {
+  const handleClick = (cellId: number) => {
     console.log(`Kliknuto je polje sa ID: ${cellId}`);
     setIsCellClicked(true);
     setClickedCell(cellId);
-    setCellRow(rowName);
-    setCellCol(colName);
   };
 
   useEffect(() => {
@@ -191,186 +199,24 @@ const MultiPlayerGame = () => {
     setSelectedMovie(null);
   };
 
-  const handleSelectMovieFromSearch = async (movieId: number) => {
-    try {
-      const endpoint = `/movie/${movieId}`;
-      const params = "&append_to_response=credits";
-
-      const res = await fetch(
-        `/api/movies?endpoint=${endpoint}&params=${encodeURIComponent(params)}`
-      );
-      const data = await res.json();
-      console.log(data);
-
-      const directorObject = data.credits.crew.find(
-        (member: any) => member.job === "Director"
-      );
-
-      const releaseYear = parseInt(data.release_date.split("-")[0]);
-      const decade = `${Math.floor(releaseYear / 10) * 10}s`;
-      const genres: string[] = data.genres.map((genre: any) => genre.name);
-      const actors: string[] = data.credits.cast
-        .slice(0, 4)
-        .map((actor: any) => actor.name);
-
-      const completeMovie = {
-        id: data.id,
-        title: data.title,
-        poster_path: data.poster_path,
-        year: releaseYear,
-        decade: decade,
-        director: directorObject ? directorObject.name : "Unknown Director",
-        genres: genres,
-        actors: actors || [],
-      };
-
-      setSelectedMovie(completeMovie);
-      setSearchValue("");
-    } catch (err) {
-      console.error("Error: ", err);
-    }
+  const handleSelectMovieFromSearch = (movie: Movie) => {
+    setSelectedMovie({
+      id: movie.id,
+      title: movie.title,
+      poster_path: movie.poster_path,
+    });
+    setSearchValue("");
   };
 
+  // Server provjerava film preko TMDB-a i odlucuje da li je potez tacan
   const handleChooseMovie = (movie: Movie) => {
-    const rowType = cellRow.split(":")[0];
-    const rowValue = cellRow.split(":")[1];
-    const colType = cellCol.split(":")[0];
-    const colValue = cellCol.split(":")[1];
+    if (!socketRef.current || clickedCell === null) return;
 
-    // Ovo promijeniti da poredi idejeve umjeseto imena zanrova
-
-    switch (true) {
-      case rowType === "genre" && colType === "actor": {
-        let genreToComapre = rowValue;
-
-        if (rowValue === "Sci-Fi") {
-          genreToComapre = "Science Fiction";
-        }
-
-        if (
-          movie.actors.some((actor) => actor === colValue) &&
-          movie.genres.some((genre) => genre === genreToComapre)
-        ) {
-          if (!socketRef.current) return;
-
-          socketRef.current.emit("make_move", {
-            roomID,
-            cellIndex: clickedCell,
-            isCorrect: true,
-            movie: {
-              poster_path: movie.poster_path,
-              title: movie.title,
-            },
-            claimedBy: role,
-          });
-        } else {
-          if (!socketRef.current) return;
-
-          socketRef.current.emit("make_move", {
-            roomID,
-            cellIndex: clickedCell,
-            isCorrect: false,
-            claimedBy: role,
-          });
-        }
-        break;
-      }
-
-      case rowType === "genre" && colType === "director": {
-        let genreToComapre = rowValue;
-
-        if (rowValue === "Sci-Fi") {
-          genreToComapre = "Science Fiction";
-        }
-
-        if (
-          movie.director === colValue &&
-          movie.genres.some((genre) => genre === genreToComapre)
-        ) {
-          if (!socketRef.current) return;
-
-          socketRef.current.emit("make_move", {
-            roomID,
-            cellIndex: clickedCell,
-            isCorrect: true,
-            movie: {
-              poster_path: movie.poster_path,
-              title: movie.title,
-            },
-            claimedBy: role,
-          });
-        } else {
-          if (!socketRef.current) return;
-
-          socketRef.current.emit("make_move", {
-            roomID,
-            cellIndex: clickedCell,
-            isCorrect: false,
-            claimedBy: role,
-          });
-        }
-        break;
-      }
-
-      case rowType === "decade" && colType === "actor": {
-        if (
-          movie.actors.some((actor) => actor === colValue) &&
-          movie.decade === rowValue
-        ) {
-          if (!socketRef.current) return;
-
-          socketRef.current.emit("make_move", {
-            roomID,
-            cellIndex: clickedCell,
-            isCorrect: true,
-            movie: {
-              poster_path: movie.poster_path,
-              title: movie.title,
-            },
-            claimedBy: role,
-          });
-        } else {
-          if (!socketRef.current) return;
-
-          socketRef.current.emit("make_move", {
-            roomID,
-            cellIndex: clickedCell,
-            isCorrect: false,
-            claimedBy: role,
-          });
-        }
-        break;
-      }
-
-      case rowType === "decade" && colType === "director": {
-        if (movie.director === colValue && movie.decade === rowValue) {
-          if (!socketRef.current) return;
-
-          socketRef.current.emit("make_move", {
-            roomID,
-            cellIndex: clickedCell,
-            isCorrect: true,
-            movie: {
-              poster_path: movie.poster_path,
-              title: movie.title,
-            },
-            claimedBy: role,
-          });
-        } else {
-          if (!socketRef.current) return;
-          socketRef.current.emit("make_move", {
-            roomID,
-            cellIndex: clickedCell,
-            isCorrect: false,
-            claimedBy: role,
-          });
-        }
-        break;
-      }
-
-      default:
-        console.log("Greska");
-    }
+    socketRef.current.emit("make_move", {
+      roomID,
+      cellIndex: clickedCell,
+      movieId: movie.id,
+    });
 
     setIsCellClicked(false);
     setSearchValue("");
@@ -444,15 +290,15 @@ const MultiPlayerGame = () => {
             {[0, 1, 2].map((colIndex) => {
               const cellId = rowIndex * 3 + colIndex;
 
-              const colName = gridData?.cols[colIndex] || "";
-
               const guessedMovie = gridGuesses[cellId];
 
               return (
                 <button
-                  onClick={() => handleClick(cellId, rowName, colName)}
+                  onClick={() => handleClick(cellId)}
                   key={cellId}
-                  disabled={!!guessedMovie || role != currentTurn}
+                  disabled={
+                    !!guessedMovie || role != currentTurn || !!gameResult
+                  }
                   className="relative cursor-pointer bg-slate-800 flex items-center justify-center p-4 break-words leading-tight aspect-[2/3] text-l"
                 >
                   {guessedMovie ? (
@@ -483,6 +329,22 @@ const MultiPlayerGame = () => {
           </React.Fragment>
         ))}
       </div>
+
+      {gameResult && (
+        <p className="mt-4 text-2xl font-bold">
+          {gameResult.winner === "DRAW"
+            ? "It's a draw!"
+            : gameResult.winner === role
+            ? "You won!"
+            : "You lost!"}
+        </p>
+      )}
+
+      {moveError && (
+        <div className="fixed top-20 rounded-md p-3 bg-red-600 font-semibold text-sm">
+          {moveError}
+        </div>
+      )}
 
       {/* Footer */}
       <Footer />
@@ -538,9 +400,7 @@ const MultiPlayerGame = () => {
                   {searchMovies.map((searchMovie) => (
                     <button
                       key={searchMovie.id}
-                      onClick={() =>
-                        handleSelectMovieFromSearch(searchMovie.id)
-                      }
+                      onClick={() => handleSelectMovieFromSearch(searchMovie)}
                       className="flex justify-start items-center p-2 gap-2 cursor-pointer border-b border-b-slate-400 w-full"
                     >
                       {searchMovie.poster_path ? (
