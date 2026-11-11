@@ -52,9 +52,11 @@ interface TurnTimer {
   paused: boolean; // vrijeme stoji dok je neko odspojen
 }
 
-// TODO: rezultat serije je zasad hardkodovan, logika dolazi kasnije
-const SCORE_YOU = 0;
-const SCORE_OPP = 0;
+// Rezultat serije, broj pobjeda po igracu
+type Score = { X: number; O: number };
+
+// Koliko dugo se vidi popup "You won / You lost / Draw" posle partije
+const GAME_POPUP_MS = 2500;
 
 // 35000 ms -> "0:35"
 const formatTimeLeft = (ms: number) => {
@@ -104,6 +106,14 @@ const MultiPlayerGame = () => {
   const [copied, setCopied] = useState(false);
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
   const [moveError, setMoveError] = useState<string | null>(null);
+  const [score, setScore] = useState<Score>({ X: 0, O: 0 });
+  // Cijela serija je gotova (inace je gameResult samo kraj jedne partije)
+  const [matchOver, setMatchOver] = useState(false);
+  // Pobjednik upravo zavrsene partije, za popup (null = nema popupa)
+  const [gamePopup, setGamePopup] = useState<GameResult["winner"] | null>(
+    null
+  );
+  const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Preostalo vrijeme od servera + lokalni trenutak kad je stiglo
   const [turnTimer, setTurnTimer] = useState<
     (Omit<TurnTimer, "turn"> & { syncedAt: number }) | null
@@ -206,14 +216,23 @@ const MultiPlayerGame = () => {
         result,
         players,
         timer,
+        score,
+        matchWinner,
       }: {
         currentTurn: "X" | "O";
         grid: { rows: string[]; cols: string[] };
         board: BoardCell[];
+        // Postavljen kad je partija gotova (pauza prije nove ili kraj serije)
         result: GameResult | null;
         players: { X: boolean; O: boolean };
         timer: TurnTimer;
+        score: Score;
+        matchWinner: "X" | "O" | null;
       }) => {
+        // Stize i za svaku novu partiju u seriji (novi grid, prazna tabla)
+        setScore(score);
+        setMatchOver(matchWinner != null);
+        setIsCellClicked(false);
         setGridData({ rows: grid.rows, cols: grid.cols });
         setCurrentTurn(currentTurn);
         applyTimer(timer);
@@ -262,9 +281,30 @@ const MultiPlayerGame = () => {
       applyTimer(timer);
     });
 
-    socket.on("game_end", (result: GameResult) => {
-      setGameResult(result);
-    });
+    // Kraj jedne partije. Tabla ostaje sa pobjednickom linijom; ako serija
+    // nije gotova, nakon kratke pauze stize game_start sa novom partijom.
+    socket.on(
+      "game_end",
+      ({
+        winner,
+        winningLine,
+        score,
+        matchWinner,
+      }: GameResult & { score: Score; matchWinner: "X" | "O" | null }) => {
+        setScore(score);
+
+        setGamePopup(winner);
+        if (popupTimerRef.current) clearTimeout(popupTimerRef.current);
+        popupTimerRef.current = setTimeout(
+          () => setGamePopup(null),
+          GAME_POPUP_MS
+        );
+
+        // Zakljucaj tablu i istakni pobjednicku liniju
+        setGameResult({ winner, winningLine });
+        setMatchOver(matchWinner != null);
+      }
+    );
 
     socket.on("move_rejected", ({ reason }: { reason: string }) => {
       setMoveError(reason);
@@ -274,6 +314,7 @@ const MultiPlayerGame = () => {
     return () => {
       stopWaiting();
       clearTimeout(slowTimer);
+      if (popupTimerRef.current) clearTimeout(popupTimerRef.current);
       socket.removeAllListeners();
       socket.disconnect();
     };
@@ -525,7 +566,7 @@ const MultiPlayerGame = () => {
               YOU
             </span>
             <span className="flex items-center px-2 sm:px-4 py-1 font-semibold tabular-nums">
-              {SCORE_YOU} : {SCORE_OPP}
+              {score[role as "X" | "O"]} : {score[opponent as "X" | "O"]}
             </span>
             <span
               className={`flex items-center border-r-4 bg-slate-700 px-2 sm:px-3 py-1 font-normal ${
@@ -552,7 +593,8 @@ const MultiPlayerGame = () => {
           )}
         </div>
 
-        {gameResult ? (
+        {gameResult && matchOver ? (
+          // Kraj cijele serije
           <span
             className={`shrink-0 rounded-md px-3 sm:px-4 py-1 font-semibold text-white ${
               gameResult.winner === "DRAW"
@@ -567,6 +609,11 @@ const MultiPlayerGame = () => {
               : gameResult.winner === role
               ? "You won!"
               : "You lost!"}
+          </span>
+        ) : gameResult ? (
+          // Pauza izmedju partija u seriji (vidi se pobjednicka linija)
+          <span className="shrink-0 rounded-md bg-slate-600 px-3 sm:px-4 py-1 font-semibold text-white">
+            Next game...
           </span>
         ) : isMyTurn ? (
           // "Your turn" i "Skip" spojeni u jedan blok
@@ -686,6 +733,26 @@ const MultiPlayerGame = () => {
       {moveError && (
         <div className="fixed top-20 rounded-md p-3 bg-red-600 font-semibold text-sm">
           {moveError}
+        </div>
+      )}
+
+      {/* Popup posle svake partije: zelen za pobjedu, crven za poraz, amber za nerijeseno */}
+      {gamePopup && (
+        <div
+          role="status"
+          className={`fixed top-20 left-1/2 -translate-x-1/2 z-50 rounded-md px-4 py-1.5 text-sm font-semibold text-white shadow-lg ${
+            gamePopup === "DRAW"
+              ? "bg-amber-500"
+              : gamePopup === role
+              ? "bg-green-600"
+              : "bg-red-600"
+          }`}
+        >
+          {gamePopup === "DRAW"
+            ? "Draw"
+            : gamePopup === role
+            ? "You won"
+            : "You lost"}
         </div>
       )}
 

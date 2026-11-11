@@ -72,6 +72,7 @@ export const whenPageIsShown = (callback: () => void) => {
 // sobu, a server ih koristi samo kad pravi novu sobu.
 export interface RoomSettings {
   turnSeconds: 15 | 40 | 60 | null; // null = bez ogranicenja
+  bestOf: 3 | 5 | 7 | null; // null = serija bez kraja
 }
 
 const settingsKey = (roomID: string) => `movie-ttt-settings-${roomID}`;

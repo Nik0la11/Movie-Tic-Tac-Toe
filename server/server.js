@@ -17,6 +17,13 @@ const ROOM_CLEANUP_MS = 2 * 60 * 1000;
 const ALLOWED_TURN_SECONDS = [15, 40, 60, null];
 const DEFAULT_TURN_SECONDS = 40;
 
+// Broj partija u seriji koje kreator bira (null = bez kraja)
+const ALLOWED_BEST_OF = [3, 5, 7, null];
+const DEFAULT_BEST_OF = 5;
+
+// Pauza izmedju partija, da igraci vide pobjednicku liniju prije nove table
+const NEXT_GAME_DELAY_MS = 1000;
+
 // Kad se igrac vrati poslije prekida, dobije bar ovoliko vremena da nastavi
 const MIN_RESUME_MS = 3000;
 
@@ -145,17 +152,29 @@ const matchesCriterion = (movie, criterion) => {
   }
 };
 
-const parseTurnSeconds = (settings) => {
-  if (settings && "turnSeconds" in settings) {
-    const value = settings.turnSeconds;
-    if (ALLOWED_TURN_SECONDS.includes(value)) return value;
+// Uzima vrijednost iz podesavanja kreatora ako je dozvoljena, inace podrazumijevanu
+const parseSetting = (settings, key, allowed, fallback) => {
+  if (settings && typeof settings === "object" && key in settings) {
+    const value = settings[key];
+    if (allowed.includes(value)) return value;
   }
-  return DEFAULT_TURN_SECONDS;
+  return fallback;
 };
 
-const createGameState = (turnSeconds) => ({
+const createGameState = (settings) => ({
   turn: "X",
-  turnSeconds,
+  turnSeconds: parseSetting(
+    settings,
+    "turnSeconds",
+    ALLOWED_TURN_SECONDS,
+    DEFAULT_TURN_SECONDS
+  ),
+  // Serija partija
+  bestOf: parseSetting(settings, "bestOf", ALLOWED_BEST_OF, DEFAULT_BEST_OF),
+  score: { X: 0, O: 0 },
+  gameNumber: 1,
+  matchWinner: null, // "X" | "O" kad je serija gotova
+  nextGameTimer: null, // pauza izmedju partija
   // Tajmer poteza. Stanja: radi (turnTimer + turnDeadline), pauziran
   // (turnRemainingMs, dok je neko odspojen), isteklo dok se film provjerava
   // (turnExpired), ili ugasen (bez ogranicenja / kraj igre).
@@ -219,10 +238,7 @@ const runTurnTimer = (roomID, gameState, ms) => {
   gameState.turnRemainingMs = null;
   gameState.turnExpired = false;
   gameState.turnDeadline = Date.now() + ms;
-  gameState.turnTimer = setTimeout(
-    () => onTurnTimeout(roomID, gameState),
-    ms
-  );
+  gameState.turnTimer = setTimeout(() => onTurnTimeout(roomID, gameState), ms);
 };
 
 // Puno vrijeme za igraca koji je upravo dobio potez
@@ -240,10 +256,7 @@ const startTurnTimer = (roomID, gameState) => {
 
 const pauseTurnTimer = (gameState) => {
   if (!gameState.turnTimer) return;
-  gameState.turnRemainingMs = Math.max(
-    0,
-    gameState.turnDeadline - Date.now()
-  );
+  gameState.turnRemainingMs = Math.max(0, gameState.turnDeadline - Date.now());
   clearTimeout(gameState.turnTimer);
   gameState.turnTimer = null;
   gameState.turnDeadline = null;
@@ -277,6 +290,77 @@ const onTurnTimeout = (roomID, gameState) => {
   passTurn(roomID, gameState, "timeout");
 };
 
+// ---------- Serija partija ----------
+
+// Cijelo stanje igre. Salje se na pocetku, pri povratku igraca i za svaku novu partiju.
+const emitGameState = (roomID, gameState) => {
+  io.to(roomID).emit("game_start", {
+    currentTurn: gameState.turn,
+    grid: gameState.grid,
+    board: gameState.board,
+    result: gameState.result,
+    players: playersStatus(gameState),
+    timer: timerSnapshot(gameState),
+    score: gameState.score,
+    bestOf: gameState.bestOf,
+    gameNumber: gameState.gameNumber,
+    matchWinner: gameState.matchWinner,
+  });
+};
+
+const startNextGame = (roomID, gameState) => {
+  gameState.nextGameTimer = null;
+  // Soba je mogla biti obrisana tokom pauze
+  if (gameStates[roomID] !== gameState) return;
+
+  gameState.gameNumber++;
+  gameState.board = Array(9).fill(null);
+  gameState.grid = generateRandomGrid();
+  gameState.result = null;
+  // Prvi potez naizmjenicno: 1. partija X, 2. partija O, 3. X...
+  gameState.turn = gameState.gameNumber % 2 === 1 ? "X" : "O";
+
+  startTurnTimer(roomID, gameState);
+  emitGameState(roomID, gameState);
+};
+
+// Partija je gotova: azuriraj rezultat, pa ili zavrsi seriju ili odmah pokreni novu partiju
+const endGame = (roomID, gameState, result) => {
+  stopTurnTimer(gameState);
+
+  if (result.winner !== "DRAW") gameState.score[result.winner]++;
+
+  const winsNeeded =
+    gameState.bestOf == null ? null : Math.ceil(gameState.bestOf / 2);
+  const matchWinner =
+    winsNeeded != null &&
+    result.winner !== "DRAW" &&
+    gameState.score[result.winner] >= winsNeeded
+      ? result.winner
+      : null;
+
+  io.to(roomID).emit("game_end", {
+    ...result,
+    score: gameState.score,
+    matchWinner,
+  });
+
+  // Tabla ostaje (sa pobjednickom linijom), potezi su zakljucani
+  gameState.result = result;
+
+  if (matchWinner) {
+    // Kraj serije: tabla ostaje zauvijek
+    gameState.matchWinner = matchWinner;
+    return;
+  }
+
+  // Kratka pauza da se vidi pobjednicka linija, pa nova partija
+  gameState.nextGameTimer = setTimeout(
+    () => startNextGame(roomID, gameState),
+    NEXT_GAME_DELAY_MS
+  );
+};
+
 const scheduleCleanupIfEmpty = (roomID) => {
   const gameState = gameStates[roomID];
   if (!gameState) return;
@@ -290,6 +374,7 @@ const scheduleCleanupIfEmpty = (roomID) => {
   gameState.cleanupTimer = setTimeout(() => {
     if (gameStates[roomID] === gameState) {
       stopTurnTimer(gameState);
+      clearTimeout(gameState.nextGameTimer);
       delete gameStates[roomID];
       console.log(`Soba ${roomID} obrisana`);
     }
@@ -349,7 +434,7 @@ io.on("connection", (socket) => {
 
     // Sobu pravi prvi igrac (kreator), pa se uzimaju njegova podesavanja
     if (!gameStates[roomID]) {
-      gameStates[roomID] = createGameState(parseTurnSeconds(settings));
+      gameStates[roomID] = createGameState(settings);
     }
 
     const gameState = gameStates[roomID];
@@ -425,14 +510,7 @@ io.on("connection", (socket) => {
     }
 
     // Saljemo cijelo stanje, da bi i igrac koji se vratio vidio tablu
-    io.to(roomID).emit("game_start", {
-      currentTurn: gameState.turn,
-      grid: gameState.grid,
-      board: gameState.board,
-      result: gameState.result,
-      players: playersStatus(gameState),
-      timer: timerSnapshot(gameState),
-    });
+    emitGameState(roomID, gameState);
   });
 
   socket.on("make_move", async ({ cellIndex, movieId } = {}) => {
@@ -502,10 +580,13 @@ io.on("connection", (socket) => {
     gameState.moveCount++;
 
     const result = checkWinner(gameState.board);
-    if (result) gameState.result = result;
 
-    // Novi igrac dobija puno vrijeme (ili se tajmer gasi ako je kraj igre)
-    startTurnTimer(roomID, gameState);
+    // Novi igrac dobija puno vrijeme; ako je partija gotova, tajmer se gasi
+    if (result) {
+      stopTurnTimer(gameState);
+    } else {
+      startTurnTimer(roomID, gameState);
+    }
 
     io.to(roomID).emit("receive_move", {
       cellIndex,
@@ -518,9 +599,7 @@ io.on("connection", (socket) => {
       timer: timerSnapshot(gameState),
     });
 
-    if (result) {
-      io.to(roomID).emit("game_end", result);
-    }
+    if (result) endGame(roomID, gameState, result);
   });
 
   socket.on("skip_turn", () => {

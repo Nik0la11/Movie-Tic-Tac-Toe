@@ -23,13 +23,23 @@ const TIME_OPTIONS: {
   { label: "Unlimited", description: "No limit", seconds: null },
 ];
 
+const ROUND_OPTIONS: {
+  label: string;
+  bestOf: RoomSettings["bestOf"];
+}[] = [
+  { label: "Best of 3", bestOf: 3 },
+  { label: "Best of 5", bestOf: 5 },
+  { label: "Best of 7", bestOf: 7 },
+  { label: "Unlimited", bestOf: null },
+];
+
 const Room = () => {
   const alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
   const nanoid = customAlphabet(alphabet, 6);
   const router = useRouter();
   const roomID = nanoid();
   const [code, setCode] = useState("");
-  const [rounds, setRounds] = useState("");
+  const [bestOf, setBestOf] = useState<RoomSettings["bestOf"]>(5);
   const [turnSeconds, setTurnSeconds] =
     useState<RoomSettings["turnSeconds"]>(40);
 
@@ -46,7 +56,7 @@ const Room = () => {
   const handleCreateRoom = () => {
     // Kreator ulazi u sobu bez klika na "Join game"
     markRoomJoined(roomID);
-    saveRoomSettings(roomID, { turnSeconds });
+    saveRoomSettings(roomID, { turnSeconds, bestOf });
     router.push(`/room/${roomID}`);
   };
 
@@ -83,32 +93,25 @@ const Room = () => {
           </div>
 
           <div className="flex items-center justify-start mb-2">
-            <div
-              className={`rounded-l-md border border-white pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36 cursor-pointer ${
-                rounds === "3" ? "bg-blue-500 border border-blue-500" : ""
-              }`}
-              onClick={() => setRounds("3")}
-            >
-              <p className="text-sm sm:text-base">Best of 3</p>
-            </div>
-            <div
-              className="border pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36 bg-blue-500 border-blue-500 cursor-pointer"
-              onClick={() => setRounds("5")}
-            >
-              <p className="text-sm sm:text-base">Best of 5</p>
-            </div>
-            <div
-              className="border-y-1 pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36 cursor-pointer"
-              onClick={() => setRounds("7")}
-            >
-              <p className="text-sm sm:text-base">Best of 7</p>
-            </div>
-            <div
-              className="rounded-r-md border border-white pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36 cursor-pointer"
-              onClick={() => setRounds("u")}
-            >
-              <p className="text-sm sm:text-base">Unlimited</p>
-            </div>
+            {ROUND_OPTIONS.map((option, index) => {
+              const isSelected = bestOf === option.bestOf;
+              const isFirst = index === 0;
+              const isLast = index === ROUND_OPTIONS.length - 1;
+
+              return (
+                <div
+                  key={option.label}
+                  onClick={() => setBestOf(option.bestOf)}
+                  className={`border pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36 cursor-pointer ${
+                    isFirst ? "rounded-l-md" : ""
+                  } ${isLast ? "rounded-r-md" : ""} ${
+                    isSelected ? "bg-blue-500 border-blue-500" : "border-white"
+                  }`}
+                >
+                  <p className="text-sm sm:text-base">{option.label}</p>
+                </div>
+              );
+            })}
           </div>
           <div className="flex items-center justify-start mb-4">
             {TIME_OPTIONS.map((option, index) => {
