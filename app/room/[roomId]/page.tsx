@@ -7,7 +7,7 @@ import Footer from "@/app/components/Footer";
 import Header from "@/app/components/Header";
 import { useParams } from "next/navigation";
 import { useRef } from "react";
-import { Copy } from "lucide-react";
+import { Copy, Plus } from "lucide-react";
 import Link from "next/link";
 import {
   getPlayerId,
@@ -615,18 +615,20 @@ const MultiPlayerGame = () => {
               const isWinningCell =
                 gameResult?.winningLine.includes(cellId) ?? false;
 
+              // Polje se moze kliknuti: prazno je i igrac je na potezu
+              const canGuess =
+                !guessedMovie &&
+                role === currentTurn &&
+                !gameResult &&
+                isConnected &&
+                opponentOnline;
+
               return (
                 <button
                   onClick={() => handleClick(cellId)}
                   key={cellId}
-                  disabled={
-                    !!guessedMovie ||
-                    role != currentTurn ||
-                    !!gameResult ||
-                    !isConnected ||
-                    !opponentOnline
-                  }
-                  className={`relative cursor-pointer disabled:cursor-default bg-slate-800 flex items-center justify-center p-4 break-words leading-tight aspect-[2/3] text-l transition-all duration-300 ${
+                  disabled={!canGuess}
+                  className={`group relative cursor-pointer disabled:cursor-default bg-slate-800 enabled:hover:bg-slate-700 flex items-center justify-center p-4 break-words leading-tight aspect-[2/3] text-l transition-all duration-300 ${
                     isWinningCell
                       ? "ring-4 ring-yellow-400 z-10 scale-105"
                       : gameResult && gameResult.winner !== "DRAW"
@@ -642,6 +644,13 @@ const MultiPlayerGame = () => {
                     />
                   ) : (
                     <></>
+                  )}
+                  {/* Plus na praznim poljima kad je igrac na potezu */}
+                  {canGuess && (
+                    <Plus
+                      aria-hidden
+                      className="w-8 h-8 sm:w-10 sm:h-10 text-slate-500 transition-colors group-hover:text-white"
+                    />
                   )}
                   {guessedMovie?.claimedBy && (
                     <div
