@@ -24,8 +24,13 @@ const DEFAULT_BEST_OF = 5;
 // Pauza izmedju partija, da igraci vide pobjednicku liniju prije nove table
 const NEXT_GAME_DELAY_MS = 1000;
 
-// Kad se igrac vrati poslije prekida, dobije bar ovoliko vremena da nastavi
-const MIN_RESUME_MS = 3000;
+// Ako igrac izadje usred igre i ne vrati se za ovoliko vremena, igra se brise
+// i protivnik dobija poruku da je igrac napustio igru
+const ABANDON_MS = 10 * 1000;
+
+// Koliko dugo pamtimo da je igra u sobi zavrsena (napustena), da link vodi na
+// poruku "This game has ended" umjesto u novu praznu sobu
+const ENDED_ROOM_MEMORY_MS = 30 * 60 * 1000;
 
 // Koliko najduze cekamo TMDB pri provjeri filma
 const TMDB_TIMEOUT_MS = 8000;
@@ -176,12 +181,11 @@ const createGameState = (settings) => ({
   matchWinner: null, // "X" | "O" kad je serija gotova
   nextGameTimer: null, // pauza izmedju partija
   drawOfferBy: null, // "X" | "O" - ko je ponudio nerijeseno u ovoj partiji
-  // Tajmer poteza. Stanja: radi (turnTimer + turnDeadline), pauziran
-  // (turnRemainingMs, dok je neko odspojen), isteklo dok se film provjerava
-  // (turnExpired), ili ugasen (bez ogranicenja / kraj igre).
+  // Tajmer poteza. Nikad ne staje (ni kad se neko odspoji). Stanja: radi
+  // (turnTimer + turnDeadline), isteklo dok se film provjerava (turnExpired),
+  // ili ugasen (bez ogranicenja / kraj igre).
   turnTimer: null,
   turnDeadline: null,
-  turnRemainingMs: null,
   turnExpired: false,
   board: Array(9).fill(null),
   grid: generateRandomGrid(),
@@ -192,17 +196,14 @@ const createGameState = (settings) => ({
   pendingMove: false,
   moveCount: 0,
   cleanupTimer: null,
+  // Odbrojavanje od ABANDON_MS za igraca koji je izasao usred igre
+  abandonTimers: { X: null, O: null },
 });
 
 const playersStatus = (gameState) => ({
   X: !!gameState.seats.X?.connected,
   O: !!gameState.seats.O?.connected,
 });
-
-const bothConnected = (gameState) => {
-  const status = playersStatus(gameState);
-  return status.X && status.O;
-};
 
 // ---------- Tajmer poteza ----------
 
@@ -212,8 +213,6 @@ const timerSnapshot = (gameState) => {
   let timeLeftMs = null;
   if (gameState.turnTimer) {
     timeLeftMs = Math.max(0, gameState.turnDeadline - Date.now());
-  } else if (gameState.turnRemainingMs != null) {
-    timeLeftMs = gameState.turnRemainingMs;
   } else if (gameState.turnExpired) {
     timeLeftMs = 0;
   }
@@ -222,7 +221,6 @@ const timerSnapshot = (gameState) => {
     turn: gameState.turn,
     turnSeconds: gameState.turnSeconds,
     timeLeftMs,
-    paused: !gameState.turnTimer && gameState.turnRemainingMs != null,
   };
 };
 
@@ -230,13 +228,11 @@ const stopTurnTimer = (gameState) => {
   clearTimeout(gameState.turnTimer);
   gameState.turnTimer = null;
   gameState.turnDeadline = null;
-  gameState.turnRemainingMs = null;
   gameState.turnExpired = false;
 };
 
 const runTurnTimer = (roomID, gameState, ms) => {
   clearTimeout(gameState.turnTimer);
-  gameState.turnRemainingMs = null;
   gameState.turnExpired = false;
   gameState.turnDeadline = Date.now() + ms;
   gameState.turnTimer = setTimeout(() => onTurnTimeout(roomID, gameState), ms);
@@ -247,29 +243,7 @@ const startTurnTimer = (roomID, gameState) => {
   stopTurnTimer(gameState);
   if (gameState.turnSeconds == null || gameState.result) return;
 
-  const ms = gameState.turnSeconds * 1000;
-  if (bothConnected(gameState)) {
-    runTurnTimer(roomID, gameState, ms);
-  } else {
-    gameState.turnRemainingMs = ms; // krece kad se oba igraca povezu
-  }
-};
-
-const pauseTurnTimer = (gameState) => {
-  if (!gameState.turnTimer) return;
-  gameState.turnRemainingMs = Math.max(0, gameState.turnDeadline - Date.now());
-  clearTimeout(gameState.turnTimer);
-  gameState.turnTimer = null;
-  gameState.turnDeadline = null;
-};
-
-const resumeTurnTimer = (roomID, gameState) => {
-  if (gameState.turnRemainingMs == null || !bothConnected(gameState)) return;
-  runTurnTimer(
-    roomID,
-    gameState,
-    Math.max(gameState.turnRemainingMs, MIN_RESUME_MS)
-  );
+  runTurnTimer(roomID, gameState, gameState.turnSeconds * 1000);
 };
 
 // ---------- Ponuda nerijesenog ----------
@@ -381,6 +355,65 @@ const endGame = (roomID, gameState, result) => {
   );
 };
 
+// ---------- Brisanje sobe ----------
+
+// Sobe cija je igra zavrsena napustanjem: roomID -> true (pamti se ENDED_ROOM_MEMORY_MS)
+const endedRooms = new Map();
+
+const clearRoomTimers = (gameState) => {
+  stopTurnTimer(gameState);
+  clearTimeout(gameState.nextGameTimer);
+  clearTimeout(gameState.cleanupTimer);
+  clearTimeout(gameState.abandonTimers.X);
+  clearTimeout(gameState.abandonTimers.O);
+};
+
+// Igrac je napustio igru: obrisi sobu i javi igracima koji su jos u njoj
+const endAbandonedRoom = (roomID, gameState) => {
+  if (gameStates[roomID] !== gameState) return;
+
+  clearRoomTimers(gameState);
+  delete gameStates[roomID];
+
+  endedRooms.set(roomID, true);
+  setTimeout(() => endedRooms.delete(roomID), ENDED_ROOM_MEMORY_MS);
+
+  const socketIds = io.sockets.adapter.rooms.get(roomID) || new Set();
+  for (const id of [...socketIds]) {
+    const s = io.sockets.sockets.get(id);
+    if (!s) continue;
+    s.data.roomID = null;
+    s.data.role = null;
+    s.leave(roomID);
+    s.emit("opponent_left", "Your opponent left the game");
+  }
+
+  console.log(`Soba ${roomID} obrisana (igrac napustio igru)`);
+};
+
+// Igrac je izasao usred igre: ima ABANDON_MS da se vrati, inace se igra brise
+const startAbandonTimer = (roomID, gameState, role) => {
+  clearTimeout(gameState.abandonTimers[role]);
+  gameState.abandonTimers[role] = setTimeout(() => {
+    gameState.abandonTimers[role] = null;
+    if (gameStates[roomID] !== gameState) return;
+    if (gameState.seats[role]?.connected) return; // vratio se u medjuvremenu
+
+    // Gost nije odigrao nijedan potez (igra prakticno nije pocela, ili je to
+    // bio program koji pravi pregled linka): samo oslobodi mjesto, a kreator
+    // se vraca na stranicu sa linkom i ceka prijatelja
+    if (role === "O" && gameState.moveCount === 0) {
+      gameState.seats.O = null;
+      stopTurnTimer(gameState);
+      io.to(roomID).emit("waiting", "Waiting for friend to join!");
+      scheduleCleanupIfEmpty(roomID);
+      return;
+    }
+
+    endAbandonedRoom(roomID, gameState);
+  }, ABANDON_MS);
+};
+
 const scheduleCleanupIfEmpty = (roomID) => {
   const gameState = gameStates[roomID];
   if (!gameState) return;
@@ -393,8 +426,7 @@ const scheduleCleanupIfEmpty = (roomID) => {
   clearTimeout(gameState.cleanupTimer);
   gameState.cleanupTimer = setTimeout(() => {
     if (gameStates[roomID] === gameState) {
-      stopTurnTimer(gameState);
-      clearTimeout(gameState.nextGameTimer);
+      clearRoomTimers(gameState);
       delete gameStates[roomID];
       console.log(`Soba ${roomID} obrisana`);
     }
@@ -420,15 +452,27 @@ const leaveSeat = (socket) => {
   if (!player) return;
 
   const { roomID, gameState, role } = player;
-  gameState.seats[role].connected = false;
+  const { seats } = gameState;
+  seats[role].connected = false;
   socket.leave(roomID);
 
-  // Vrijeme ne tece dok je neko odspojen (ionako niko ne moze da igra)
-  pauseTurnTimer(gameState);
+  // Igra jos nije pocela (kreator sam ceka prijatelja)
+  if (!seats.X || !seats.O) {
+    scheduleCleanupIfEmpty(roomID);
+    return;
+  }
 
   io.to(roomID).emit("players_status", playersStatus(gameState));
-  io.to(roomID).emit("turn_timer", timerSnapshot(gameState));
-  scheduleCleanupIfEmpty(roomID);
+
+  // Serija je vec gotova: nema sta da se napusti, soba se brise kasnije
+  if (gameState.matchWinner) {
+    scheduleCleanupIfEmpty(roomID);
+    return;
+  }
+
+  // Ima ABANDON_MS da se vrati (protivnik za to vrijeme vidi poruku).
+  // Vrijeme za potez i dalje tece.
+  startAbandonTimer(roomID, gameState, role);
 };
 
 io.on("connection", (socket) => {
@@ -444,6 +488,12 @@ io.on("connection", (socket) => {
       playerId.length > 64
     ) {
       socket.emit("room_error", "Invalid room link");
+      return;
+    }
+
+    // Igra u ovoj sobi je zavrsena jer ju je neko napustio
+    if (endedRooms.has(roomID) && !gameStates[roomID]) {
+      socket.emit("room_error", "This game has ended");
       return;
     }
 
@@ -466,14 +516,15 @@ io.on("connection", (socket) => {
     // 2) Novi igrac na slobodno mjesto
     if (!role) role = ["X", "O"].find((r) => !seats[r]);
 
-    // 3) Novi igrac preuzima mjesto igraca koji je odspojen
-    //    (npr. prijatelj prvo otvori link u Messenger browseru pa u Chrome-u)
-    if (!role) role = ["X", "O"].find((r) => !seats[r].connected);
+    // Mjesto igraca koji je izasao je rezervisano samo za njega (isti playerId),
+    // pa niko drugi ne moze da udje i igra umjesto njega.
 
-    // 4) Dok niko nije odigrao potez, novi gost zamjenjuje gosta (O).
+    // 3) Dok niko nije odigrao potez, novi gost zamjenjuje gosta (O).
     //    Ako je mjesto zauzeo program koji je sam otvorio link (preview u
     //    chat aplikaciji), pravi igrac ga izbaci. Kreator (X) se nikad ne mijenja.
-    if (!role && gameState.moveCount === 0) role = "O";
+    //    Samo dok je kreator tu: ako je kreator izasao, njegovo mjesto ceka njega,
+    //    a niko novi ne smije da izbaci gosta.
+    if (!role && gameState.moveCount === 0 && seats.X?.connected) role = "O";
 
     if (!role) {
       socket.emit("room_error", "This room is full");
@@ -482,7 +533,7 @@ io.on("connection", (socket) => {
     }
 
     // Prethodna konekcija na ovom mjestu gubi mjesto
-    // (isti igrac u drugom tabu, ili zamijenjeni gost iz koraka 4)
+    // (isti igrac u drugom tabu, ili zamijenjeni gost iz koraka 3)
     const previous = seats[role];
     if (previous?.connected && previous.socketId !== socket.id) {
       const oldSocket = io.sockets.sockets.get(previous.socketId);
@@ -501,6 +552,9 @@ io.on("connection", (socket) => {
 
     clearTimeout(gameState.cleanupTimer);
     gameState.cleanupTimer = null;
+    // Vratio se na vrijeme - igra se ne brise
+    clearTimeout(gameState.abandonTimers[role]);
+    gameState.abandonTimers[role] = null;
 
     seats[role] = { playerId, socketId: socket.id, connected: true };
     console.log(
@@ -521,12 +575,10 @@ io.on("connection", (socket) => {
     }
 
     // Pocetak igre ili zamjena gosta prije prvog poteza: X dobija puno vrijeme.
-    // Igrac koji se vratio (refresh, prekid) nastavlja preostalo vrijeme.
+    // Igrac koji se vratio (refresh, prekid) zatice vrijeme koje je i dalje teklo.
     const isNewOccupant = previous?.playerId !== playerId;
     if (gameState.moveCount === 0 && isNewOccupant) {
       startTurnTimer(roomID, gameState);
-    } else {
-      resumeTurnTimer(roomID, gameState);
     }
 
     // Saljemo cijelo stanje, da bi i igrac koji se vratio vidio tablu
@@ -544,11 +596,9 @@ io.on("connection", (socket) => {
     if (!player) return reject("You are not a player in this room");
 
     const { roomID, gameState, role } = player;
-    const status = playersStatus(gameState);
 
     if (!gameState.seats.X || !gameState.seats.O)
       return reject("Waiting for opponent");
-    if (!status.X || !status.O) return reject("Opponent is disconnected");
     if (gameState.result) return reject("Game is over");
     if (gameState.turn !== role) return reject("Not your turn");
     if (gameState.pendingMove) return reject("Move already in progress");
@@ -624,7 +674,7 @@ io.on("connection", (socket) => {
   });
 
   // Zajednicke provjere za skip, ponudu i prihvatanje nerijesenog:
-  // igrac je u sobi, oba su povezana, partija traje i on je na potezu
+  // igrac je u sobi, partija traje i on je na potezu
   const getPlayerOnTurn = (reject) => {
     const player = getPlayer(socket);
     if (!player) return reject("You are not a player in this room");
@@ -633,7 +683,6 @@ io.on("connection", (socket) => {
 
     if (!gameState.seats.X || !gameState.seats.O)
       return reject("Waiting for opponent");
-    if (!bothConnected(gameState)) return reject("Opponent is disconnected");
     if (gameState.result) return reject("Game is over");
     if (gameState.turn !== role) return reject("Not your turn");
     if (gameState.pendingMove) return reject("Move already in progress");

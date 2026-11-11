@@ -1,18 +1,20 @@
 import { nanoid } from "nanoid";
 
-// Sve se cuva u sessionStorage: vrijedi samo za ovaj tab i prezivi refresh.
-// Pristup je u try/catch jer sessionStorage moze biti blokiran (privatni mod, in-app browseri).
+// playerId je u localStorage (cijeli browser), a oznake soba i podesavanja u
+// sessionStorage (samo ovaj tab, prezivi refresh).
+// Pristup je u try/catch jer storage moze biti blokiran (privatni mod, in-app browseri).
 
 const PLAYER_ID_KEY = "movie-ttt-player-id";
 const joinedKey = (roomID: string) => `movie-ttt-joined-${roomID}`;
 
-// Stalni ID igraca za ovaj tab - server po njemu vraca igraca na njegovo mjesto
+// Stalni ID igraca za ovaj browser - server po njemu vraca igraca na njegovo mjesto.
+// U localStorage (ne sessionStorage), da igrac koji zatvori tab i ponovo otvori
 export const getPlayerId = () => {
   try {
-    let id = sessionStorage.getItem(PLAYER_ID_KEY);
+    let id = localStorage.getItem(PLAYER_ID_KEY);
     if (!id) {
       id = nanoid();
-      sessionStorage.setItem(PLAYER_ID_KEY, id);
+      localStorage.setItem(PLAYER_ID_KEY, id);
     }
     return id;
   } catch {

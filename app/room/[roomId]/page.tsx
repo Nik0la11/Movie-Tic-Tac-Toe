@@ -49,7 +49,6 @@ interface TurnTimer {
   turn: "X" | "O";
   turnSeconds: number | null; // null = bez ogranicenja
   timeLeftMs: number | null;
-  paused: boolean; // vrijeme stoji dok je neko odspojen
 }
 
 // Rezultat serije, broj pobjeda po igracu
@@ -166,7 +165,6 @@ const MultiPlayerGame = () => {
       setTurnTimer({
         turnSeconds: timer.turnSeconds,
         timeLeftMs: timer.timeLeftMs,
-        paused: timer.paused,
         syncedAt: Date.now(),
       });
     };
@@ -198,6 +196,14 @@ const MultiPlayerGame = () => {
 
     socket.on("disconnect", () => {
       setIsConnected(false);
+    });
+
+    // Protivnik je izasao i nije se vratio na vrijeme - server je obrisao igru
+    socket.on("opponent_left", (msg: string) => {
+      setRoomError(msg);
+      setRoomStatus("error");
+      setIsCellClicked(false);
+      socket.disconnect();
     });
 
     socket.on("room_error", (msg: string) => {
@@ -357,7 +363,7 @@ const MultiPlayerGame = () => {
 
   // Odbrojavanje: osvjezava prikaz dok tajmer radi
   const timerRunning =
-    turnTimer?.timeLeftMs != null && !turnTimer.paused && !gameResult;
+    turnTimer?.timeLeftMs != null && !gameResult;
 
   useEffect(() => {
     if (!timerRunning) return;
@@ -368,8 +374,6 @@ const MultiPlayerGame = () => {
   const timeLeftMs =
     turnTimer?.timeLeftMs == null
       ? null
-      : turnTimer.paused
-      ? turnTimer.timeLeftMs
       : Math.max(
           0,
           turnTimer.timeLeftMs - Math.max(0, now - turnTimer.syncedAt)
@@ -424,7 +428,7 @@ const MultiPlayerGame = () => {
   ) : isMyTurn && drawOfferBy === opponent ? (
     <button
       onClick={() => handleDrawClick("accept_draw")}
-      disabled={!isConnected || !opponentOnline}
+      disabled={!isConnected}
       className={drawButtonClass}
     >
       {isConfirmingDraw ? "Are you sure?" : "Accept draw?"}
@@ -432,7 +436,7 @@ const MultiPlayerGame = () => {
   ) : isMyTurn && !drawOfferBy ? (
     <button
       onClick={() => handleDrawClick("offer_draw")}
-      disabled={!isConnected || !opponentOnline}
+      disabled={!isConnected}
       className={drawButtonClass}
     >
       {isConfirmingDraw ? "Are you sure?" : "Request draw"}
@@ -653,13 +657,8 @@ const MultiPlayerGame = () => {
           {!gameResult && timeLeftMs != null && (
             <span
               className={`flex items-center rounded-r-md bg-slate-800 px-2 py-1 font-semibold tabular-nums ${
-                turnTimer?.paused
-                  ? "text-slate-500"
-                  : timeLeftMs <= 5000
-                  ? "text-red-500"
-                  : "text-white"
+                timeLeftMs <= 5000 ? "text-red-500" : "text-white"
               }`}
-              title={turnTimer?.paused ? "Paused" : undefined}
             >
               {formatTimeLeft(timeLeftMs)}
             </span>
@@ -704,7 +703,7 @@ const MultiPlayerGame = () => {
                 </span>
                 <button
                   onClick={handleSkip}
-                  disabled={!isConnected || !opponentOnline}
+                  disabled={!isConnected}
                   className="rounded-r-md bg-red-500 px-2 py-1 cursor-pointer hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Skip
@@ -754,13 +753,13 @@ const MultiPlayerGame = () => {
               const isWinningCell =
                 gameResult?.winningLine.includes(cellId) ?? false;
 
-              // Polje se moze kliknuti: prazno je i igrac je na potezu
+              // Polje se moze kliknuti: prazno je i igrac je na potezu.
+              // Igra ide dalje i dok je protivnik kratko odspojen (vrijeme tece).
               const canGuess =
                 !guessedMovie &&
                 role === currentTurn &&
                 !gameResult &&
-                isConnected &&
-                opponentOnline;
+                isConnected;
 
               return (
                 <button
@@ -822,7 +821,8 @@ const MultiPlayerGame = () => {
         !opponentOnline &&
         !gameResult && (
           <p className="fixed bottom-12 left-1/2 -translate-x-1/2 z-40 rounded-md bg-slate-800 px-3 py-1.5 text-sm text-yellow-400 shadow-lg whitespace-nowrap">
-            Opponent disconnected, waiting for them to come back...
+            Opponent disconnected. The game ends if they don&apos;t return in
+            10s.
           </p>
         )
       )}
