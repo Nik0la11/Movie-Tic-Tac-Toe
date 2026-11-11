@@ -56,7 +56,9 @@ interface TurnTimer {
 type Score = { X: number; O: number };
 
 // Koliko dugo se vidi popup "You won / You lost / Draw" posle partije
-const GAME_POPUP_MS = 2500;
+// (isto kao NEXT_GAME_DELAY_MS na serveru)
+const GAME_POPUP_MS = 1000;
+
 
 // 35000 ms -> "0:35"
 const formatTimeLeft = (ms: number) => {
@@ -109,6 +111,12 @@ const MultiPlayerGame = () => {
   const [score, setScore] = useState<Score>({ X: 0, O: 0 });
   // Cijela serija je gotova (inace je gameResult samo kraj jedne partije)
   const [matchOver, setMatchOver] = useState(false);
+  const [gameNumber, setGameNumber] = useState(1);
+  // Ko je ponudio nerijeseno u ovoj partiji
+  const [drawOfferBy, setDrawOfferBy] = useState<"X" | "O" | null>(null);
+  // Drugi klik potvrdjuje ("Are you sure?"). Pamti se stanje u kom je prvi klik
+  // bio, pa se potvrda sama ponisti kad se promijeni red, ponuda ili partija.
+  const [drawConfirmKey, setDrawConfirmKey] = useState<string | null>(null);
   // Pobjednik upravo zavrsene partije, za popup (null = nema popupa)
   const [gamePopup, setGamePopup] = useState<GameResult["winner"] | null>(
     null
@@ -218,6 +226,8 @@ const MultiPlayerGame = () => {
         timer,
         score,
         matchWinner,
+        gameNumber,
+        drawOfferBy,
       }: {
         currentTurn: "X" | "O";
         grid: { rows: string[]; cols: string[] };
@@ -228,10 +238,14 @@ const MultiPlayerGame = () => {
         timer: TurnTimer;
         score: Score;
         matchWinner: "X" | "O" | null;
+        gameNumber: number;
+        drawOfferBy: "X" | "O" | null;
       }) => {
         // Stize i za svaku novu partiju u seriji (novi grid, prazna tabla)
         setScore(score);
         setMatchOver(matchWinner != null);
+        setGameNumber(gameNumber);
+        setDrawOfferBy(drawOfferBy ?? null);
         setIsCellClicked(false);
         setGridData({ rows: grid.rows, cols: grid.cols });
         setCurrentTurn(currentTurn);
@@ -279,6 +293,11 @@ const MultiPlayerGame = () => {
     // Promjena reda bez poteza (isteklo vrijeme ili skip) i pauza/nastavak tajmera
     socket.on("turn_timer", (timer: TurnTimer) => {
       applyTimer(timer);
+    });
+
+    // Ponuda nerijesenog je data (by = "X"/"O") ili je propala/prihvacena (by = null)
+    socket.on("draw_offer", ({ by }: { by: "X" | "O" | null }) => {
+      setDrawOfferBy(by);
     });
 
     // Kraj jedne partije. Tabla ostaje sa pobjednickom linijom; ako serija
@@ -357,6 +376,9 @@ const MultiPlayerGame = () => {
         );
 
   const isMyTurn = currentTurn === role;
+  // Mora biti definisano prije drawButton (i svega sto ih koristi ispod)
+  const opponent = role === "X" ? "O" : "X";
+  const opponentOnline = playersOnline[opponent as "X" | "O"];
 
   const handleClick = (cellId: number) => {
     console.log(`Kliknuto je polje sa ID: ${cellId}`);
@@ -370,6 +392,52 @@ const MultiPlayerGame = () => {
     socketRef.current?.emit("skip_turn");
     setIsCellClicked(false);
   };
+
+  // Stanje za koje vazi potvrda klika na "Request draw" / "Accept draw?"
+  const drawStateKey = `${gameNumber}-${currentTurn}-${drawOfferBy}`;
+  const isConfirmingDraw = drawConfirmKey === drawStateKey;
+
+  // Prvi klik: "Are you sure?", drugi klik: salje ponudu ili prihvata ponudu
+  const handleDrawClick = (event: "offer_draw" | "accept_draw") => {
+    if (!isConfirmingDraw) {
+      setDrawConfirmKey(drawStateKey);
+      return;
+    }
+    socketRef.current?.emit(event);
+    setDrawConfirmKey(null);
+    setIsCellClicked(false);
+  };
+
+  const drawButtonClass =
+    "rounded-md bg-amber-500 px-2 py-1 font-semibold text-white cursor-pointer hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed";
+
+  // Dugme za nerijeseno (ili null kad se ne prikazuje). Isti element se
+  // prikazuje pored Skip (od sm naviše) i ispod njega (na telefonu).
+  const drawButton = gameResult ? null : drawOfferBy === role ? (
+    // Ponudio sam - dugme ostaje dok protivnik ne odgovori
+    <button
+      disabled
+      className="rounded-md bg-amber-500 px-2 py-1 font-semibold text-white opacity-70 cursor-default"
+    >
+      Draw requested
+    </button>
+  ) : isMyTurn && drawOfferBy === opponent ? (
+    <button
+      onClick={() => handleDrawClick("accept_draw")}
+      disabled={!isConnected || !opponentOnline}
+      className={drawButtonClass}
+    >
+      {isConfirmingDraw ? "Are you sure?" : "Accept draw?"}
+    </button>
+  ) : isMyTurn && !drawOfferBy ? (
+    <button
+      onClick={() => handleDrawClick("offer_draw")}
+      disabled={!isConnected || !opponentOnline}
+      className={drawButtonClass}
+    >
+      {isConfirmingDraw ? "Are you sure?" : "Request draw"}
+    </button>
+  ) : null;
 
   useEffect(() => {
     const URL = window.location.href;
@@ -437,8 +505,6 @@ const MultiPlayerGame = () => {
     setSelectedMovie(null);
   };
 
-  const opponent = role === "X" ? "O" : "X";
-  const opponentOnline = playersOnline[opponent as "X" | "O"];
 
   if (roomStatus === "error") {
     return (
@@ -536,17 +602,24 @@ const MultiPlayerGame = () => {
   if (!gridData) return null;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950">
+    // overflow-x-hidden: nikad skrol sa strane
+    <div className="flex flex-col items-center min-h-dvh overflow-x-hidden bg-slate-950">
       {/* Header */}
 
       <Header />
 
+      {/* Prostor izmedju headera i footera; grid je sirok do 28rem kao ranije */}
+      <main className="flex-1 w-full flex items-center justify-center px-2">
+      <div className="flex flex-col w-full max-w-md">
+
       {/* Iznad grida: rezultat + tajmer lijevo (poravnato sa kolonom kategorija),
           ko je na potezu / skip desno (poravnato sa desnom ivicom grida).
           Ista sirina i pomjeraj kao grid. */}
-      {/* Na telefonu: manja slova i razmaci, a tekst se nikad ne lomi u novi red
-          (whitespace-nowrap). Od sm (640px) naviše sve je kao na desktopu. */}
-      <div className="flex items-center justify-between gap-2 sm:gap-3 mb-3 max-w-md w-full mx-auto md:ml-122 text-sm sm:text-base whitespace-nowrap">
+      {/* Kompaktan red (14px, mali razmaci) na svim ekranima, da pored Skip stane
+          i "Request draw". Tekst se nikad ne lomi u novi red (whitespace-nowrap).
+          Najsiri slucaj (rezultat + tajmer + Your turn|Skip + "Are you sure?")
+          je ~433px od 448px - razmake ne povecavati bez provjere. */}
+      <div className="flex items-center justify-between gap-1.5 mb-2 w-full text-sm whitespace-nowrap">
         {/* Tajmer je zalijepljen uz rezultat (bez razmaka, iste visine) */}
         <div className="flex items-stretch shrink-0">
           {/* Rezultat serije - TODO: zasad hardkodovan, logika dolazi kasnije.
@@ -559,17 +632,17 @@ const MultiPlayerGame = () => {
             }`}
           >
             <span
-              className={`flex items-center border-l-4 bg-slate-700 px-2 sm:px-3 py-1 font-normal ${
+              className={`flex items-center border-l-4 bg-slate-700 px-2 py-1 font-normal ${
                 role === "X" ? "border-red-500" : "border-blue-500"
               }`}
             >
               YOU
             </span>
-            <span className="flex items-center px-2 sm:px-4 py-1 font-semibold tabular-nums">
+            <span className="flex items-center px-2 py-1 font-semibold tabular-nums">
               {score[role as "X" | "O"]} : {score[opponent as "X" | "O"]}
             </span>
             <span
-              className={`flex items-center border-r-4 bg-slate-700 px-2 sm:px-3 py-1 font-normal ${
+              className={`flex items-center border-r-4 bg-slate-700 px-2 py-1 font-normal ${
                 role === "X" ? "border-blue-500" : "border-red-500"
               }`}
             >
@@ -579,7 +652,7 @@ const MultiPlayerGame = () => {
 
           {!gameResult && timeLeftMs != null && (
             <span
-              className={`flex items-center rounded-r-md bg-slate-800 px-2 sm:px-3 py-1 font-semibold tabular-nums ${
+              className={`flex items-center rounded-r-md bg-slate-800 px-2 py-1 font-semibold tabular-nums ${
                 turnTimer?.paused
                   ? "text-slate-500"
                   : timeLeftMs <= 5000
@@ -615,29 +688,45 @@ const MultiPlayerGame = () => {
           <span className="shrink-0 rounded-md bg-slate-600 px-3 sm:px-4 py-1 font-semibold text-white">
             Next game...
           </span>
-        ) : isMyTurn ? (
-          // "Your turn" i "Skip" spojeni u jedan blok
-          <div className="flex items-stretch shrink-0 font-semibold text-white">
-            <span className="rounded-l-md bg-blue-500 px-2 sm:px-4 py-1">
-              Your turn
-            </span>
-            <button
-              onClick={handleSkip}
-              disabled={!isConnected || !opponentOnline}
-              className="rounded-r-md bg-red-500 px-2 sm:px-4 py-1 cursor-pointer hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Skip
-            </button>
-          </div>
         ) : (
-          <span className="shrink-0 rounded-md bg-slate-600 px-3 sm:px-4 py-1 font-semibold text-white">
-            Their turn
-          </span>
+          // flex-wrap: ako ipak ne stane, dugme za nerijeseno prelazi u novi red
+          // umjesto da izadje van ekrana
+          <div className="flex flex-wrap items-center justify-end gap-1 min-w-0">
+            {/* Tablet i racunar (od 640px): dugme za nerijeseno lijevo od
+                "Your turn | Skip". Telefon: ispod (red ispod ovog). */}
+            {drawButton && <div className="hidden sm:block">{drawButton}</div>}
+
+            {isMyTurn ? (
+              // "Your turn" i "Skip" spojeni u jedan blok
+              <div className="flex items-stretch shrink-0 font-semibold text-white">
+                <span className="rounded-l-md bg-blue-500 px-2 py-1">
+                  Your turn
+                </span>
+                <button
+                  onClick={handleSkip}
+                  disabled={!isConnected || !opponentOnline}
+                  className="rounded-r-md bg-red-500 px-2 py-1 cursor-pointer hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Skip
+                </button>
+              </div>
+            ) : (
+              <span className="shrink-0 rounded-md bg-slate-600 px-2 py-1 font-semibold text-white">
+                Their turn
+              </span>
+            )}
+          </div>
         )}
       </div>
 
+      {/* Na telefonu: ponuda nerijesenog ispod "Your turn / Skip", poravnato desno.
+          Stalne visine, da grid ne skace kad se dugme pojavi ili nestane. */}
+      <div className="sm:hidden flex justify-end items-start h-10 w-full text-sm whitespace-nowrap">
+        {drawButton}
+      </div>
+
       {/* Grid */}
-      <div className="grid grid-cols-4 gap-1 max-w-md w-full mx-auto md:ml-122">
+      <div className="grid grid-cols-4 gap-1 w-full">
         <div className="bg-transparent p-4"></div>
 
         {gridData?.cols.map((col: string, index: number) => (
@@ -718,13 +807,18 @@ const MultiPlayerGame = () => {
           </React.Fragment>
         ))}
       </div>
+      </div>
+      </main>
 
+      {/* Poruke o konekciji plutaju iznad footera, da ne pomjeraju raspored */}
       {!isConnected ? (
-        <p className="mt-4 text-yellow-400">Connection lost, reconnecting...</p>
+        <p className="fixed bottom-12 left-1/2 -translate-x-1/2 z-40 rounded-md bg-slate-800 px-3 py-1.5 text-sm text-yellow-400 shadow-lg whitespace-nowrap">
+          Connection lost, reconnecting...
+        </p>
       ) : (
         !opponentOnline &&
         !gameResult && (
-          <p className="mt-4 text-yellow-400">
+          <p className="fixed bottom-12 left-1/2 -translate-x-1/2 z-40 rounded-md bg-slate-800 px-3 py-1.5 text-sm text-yellow-400 shadow-lg whitespace-nowrap">
             Opponent disconnected, waiting for them to come back...
           </p>
         )

@@ -175,6 +175,7 @@ const createGameState = (settings) => ({
   gameNumber: 1,
   matchWinner: null, // "X" | "O" kad je serija gotova
   nextGameTimer: null, // pauza izmedju partija
+  drawOfferBy: null, // "X" | "O" - ko je ponudio nerijeseno u ovoj partiji
   // Tajmer poteza. Stanja: radi (turnTimer + turnDeadline), pauziran
   // (turnRemainingMs, dok je neko odspojen), isteklo dok se film provjerava
   // (turnExpired), ili ugasen (bez ogranicenja / kraj igre).
@@ -271,8 +272,25 @@ const resumeTurnTimer = (roomID, gameState) => {
   );
 };
 
+// ---------- Ponuda nerijesenog ----------
+
+const setDrawOffer = (roomID, gameState, by) => {
+  if (gameState.drawOfferBy === by) return;
+  gameState.drawOfferBy = by;
+  io.to(roomID).emit("draw_offer", { by });
+};
+
+// Ponuda vazi samo dok je protivnik na potezu. Kad red opet dodje do onoga
+// ko je ponudio (protivnik odigrao, skipovao ili mu isteklo vrijeme), ponuda propada.
+const expireDrawOfferIfTurnReturned = (roomID, gameState) => {
+  if (gameState.drawOfferBy && gameState.drawOfferBy === gameState.turn) {
+    setDrawOffer(roomID, gameState, null);
+  }
+};
+
 const passTurn = (roomID, gameState, reason) => {
   gameState.turn = gameState.turn === "X" ? "O" : "X";
+  expireDrawOfferIfTurnReturned(roomID, gameState);
   startTurnTimer(roomID, gameState);
   io.to(roomID).emit("turn_timer", { ...timerSnapshot(gameState), reason });
 };
@@ -305,6 +323,7 @@ const emitGameState = (roomID, gameState) => {
     bestOf: gameState.bestOf,
     gameNumber: gameState.gameNumber,
     matchWinner: gameState.matchWinner,
+    drawOfferBy: gameState.drawOfferBy,
   });
 };
 
@@ -317,6 +336,7 @@ const startNextGame = (roomID, gameState) => {
   gameState.board = Array(9).fill(null);
   gameState.grid = generateRandomGrid();
   gameState.result = null;
+  gameState.drawOfferBy = null;
   // Prvi potez naizmjenicno: 1. partija X, 2. partija O, 3. X...
   gameState.turn = gameState.gameNumber % 2 === 1 ? "X" : "O";
 
@@ -578,6 +598,7 @@ io.on("connection", (socket) => {
     const nextTurn = role === "X" ? "O" : "X";
     gameState.turn = nextTurn;
     gameState.moveCount++;
+    expireDrawOfferIfTurnReturned(roomID, gameState);
 
     const result = checkWinner(gameState.board);
 
@@ -602,13 +623,13 @@ io.on("connection", (socket) => {
     if (result) endGame(roomID, gameState, result);
   });
 
-  socket.on("skip_turn", () => {
-    const reject = (reason) => socket.emit("move_rejected", { reason });
-
+  // Zajednicke provjere za skip, ponudu i prihvatanje nerijesenog:
+  // igrac je u sobi, oba su povezana, partija traje i on je na potezu
+  const getPlayerOnTurn = (reject) => {
     const player = getPlayer(socket);
     if (!player) return reject("You are not a player in this room");
 
-    const { roomID, gameState, role } = player;
+    const { gameState, role } = player;
 
     if (!gameState.seats.X || !gameState.seats.O)
       return reject("Waiting for opponent");
@@ -617,8 +638,57 @@ io.on("connection", (socket) => {
     if (gameState.turn !== role) return reject("Not your turn");
     if (gameState.pendingMove) return reject("Move already in progress");
 
+    return player;
+  };
+
+  socket.on("skip_turn", () => {
+    const reject = (reason) => {
+      socket.emit("move_rejected", { reason });
+      return null;
+    };
+
+    const player = getPlayerOnTurn(reject);
+    if (!player) return;
+
+    player.gameState.moveCount++;
+    passTurn(player.roomID, player.gameState, "skip");
+  });
+
+  // Ponuda nerijesenog: vazi kao potez, red prelazi na protivnika
+  socket.on("offer_draw", () => {
+    const reject = (reason) => {
+      socket.emit("move_rejected", { reason });
+      return null;
+    };
+
+    const player = getPlayerOnTurn(reject);
+    if (!player) return;
+
+    const { roomID, gameState, role } = player;
+    if (gameState.drawOfferBy) return reject("Draw already offered");
+
     gameState.moveCount++;
-    passTurn(roomID, gameState, "skip");
+    setDrawOffer(roomID, gameState, role);
+    passTurn(roomID, gameState, "draw_offer");
+  });
+
+  // Prihvatanje nerijesenog: partija se zavrsava kao nerijesena i krece nova
+  socket.on("accept_draw", () => {
+    const reject = (reason) => {
+      socket.emit("move_rejected", { reason });
+      return null;
+    };
+
+    const player = getPlayerOnTurn(reject);
+    if (!player) return;
+
+    const { roomID, gameState, role } = player;
+    const opponent = role === "X" ? "O" : "X";
+    if (gameState.drawOfferBy !== opponent) return reject("No draw offer");
+
+    gameState.moveCount++;
+    setDrawOffer(roomID, gameState, null);
+    endGame(roomID, gameState, { winner: "DRAW", winningLine: [] });
   });
 
   socket.on("disconnect", () => {
