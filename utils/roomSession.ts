@@ -68,6 +68,31 @@ export const whenPageIsShown = (callback: () => void) => {
   return stop;
 };
 
+// Podesavanja koja kreator izabere na /room. Salju se serveru pri ulasku u
+// sobu, a server ih koristi samo kad pravi novu sobu.
+export interface RoomSettings {
+  turnSeconds: 15 | 40 | 60 | null; // null = bez ogranicenja
+}
+
+const settingsKey = (roomID: string) => `movie-ttt-settings-${roomID}`;
+
+export const saveRoomSettings = (roomID: string, settings: RoomSettings) => {
+  try {
+    sessionStorage.setItem(settingsKey(roomID), JSON.stringify(settings));
+  } catch {
+    // bez sessionStorage-a server koristi podrazumijevano vrijeme
+  }
+};
+
+export const getRoomSettings = (roomID: string): RoomSettings | undefined => {
+  try {
+    const raw = sessionStorage.getItem(settingsKey(roomID));
+    return raw ? (JSON.parse(raw) as RoomSettings) : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 export const markRoomJoined = (roomID: string) => {
   try {
     sessionStorage.setItem(joinedKey(roomID), "1");

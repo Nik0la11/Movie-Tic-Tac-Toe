@@ -5,8 +5,23 @@ import Footer from "../components/Footer";
 import { customAlphabet } from "nanoid";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { markRoomJoined } from "@/utils/roomSession";
+import {
+  markRoomJoined,
+  saveRoomSettings,
+  type RoomSettings,
+} from "@/utils/roomSession";
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />;
+
+const TIME_OPTIONS: {
+  label: string;
+  description: string;
+  seconds: RoomSettings["turnSeconds"];
+}[] = [
+  { label: "Anti Cheat", description: "15s turns", seconds: 15 },
+  { label: "Normal", description: "40s turns", seconds: 40 },
+  { label: "Tactician", description: "60s turns", seconds: 60 },
+  { label: "Unlimited", description: "No limit", seconds: null },
+];
 
 const Room = () => {
   const alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -15,7 +30,8 @@ const Room = () => {
   const roomID = nanoid();
   const [code, setCode] = useState("");
   const [rounds, setRounds] = useState("");
-  const [time, setTime] = useState("");
+  const [turnSeconds, setTurnSeconds] =
+    useState<RoomSettings["turnSeconds"]>(40);
 
   const handleJoinRoom = () => {
     // Kodovi su velika slova i cifre, pa prihvatamo i "ab3k9z"
@@ -30,6 +46,7 @@ const Room = () => {
   const handleCreateRoom = () => {
     // Kreator ulazi u sobu bez klika na "Join game"
     markRoomJoined(roomID);
+    saveRoomSettings(roomID, { turnSeconds });
     router.push(`/room/${roomID}`);
   };
 
@@ -94,22 +111,32 @@ const Room = () => {
             </div>
           </div>
           <div className="flex items-center justify-start mb-4">
-            <div className="rounded-l-md border border-white pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36 cursor-pointer">
-              <h4 className="text-sm sm:text-base">Anti Cheat</h4>
-              <p className="text-gray-400 text-xs">15s turns</p>
-            </div>
-            <div className="border-y-1 border-r-1 pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36 bg-blue-500 border-blue-500 cursor-pointer">
-              <h4 className="text-sm sm:text-base">Normal</h4>
-              <p className="text-gray-200 text-xs">40s turns</p>
-            </div>
-            <div className="border-y-1 pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36 cursor-pointer">
-              <h4 className="text-sm sm:text-base">Tactician</h4>
-              <p className="text-gray-400 text-xs">60s turns</p>
-            </div>
-            <div className="rounded-r-md border border-white pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36 cursor-pointer">
-              <h4 className="text-sm sm:text-base">Unlimited</h4>
-              <p className="text-gray-400 text-xs">No limit</p>
-            </div>
+            {TIME_OPTIONS.map((option, index) => {
+              const isSelected = turnSeconds === option.seconds;
+              const isFirst = index === 0;
+              const isLast = index === TIME_OPTIONS.length - 1;
+
+              return (
+                <div
+                  key={option.label}
+                  onClick={() => setTurnSeconds(option.seconds)}
+                  className={`border pr-4 w-26 pl-2 sm:pr-12 py-2 sm:w-36 cursor-pointer ${
+                    isFirst ? "rounded-l-md" : ""
+                  } ${isLast ? "rounded-r-md" : ""} ${
+                    isSelected ? "bg-blue-500 border-blue-500" : "border-white"
+                  }`}
+                >
+                  <h4 className="text-sm sm:text-base">{option.label}</h4>
+                  <p
+                    className={`text-xs ${
+                      isSelected ? "text-gray-200" : "text-gray-400"
+                    }`}
+                  >
+                    {option.description}
+                  </p>
+                </div>
+              );
+            })}
           </div>
           <div className="flex items-center justify-end w-full">
             <button

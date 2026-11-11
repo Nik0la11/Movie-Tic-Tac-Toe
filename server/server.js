@@ -13,6 +13,16 @@ const TOP_ACTORS_COUNT = 4;
 // (da bi refresh ili kratak prekid mreze mogli da nastave istu igru)
 const ROOM_CLEANUP_MS = 2 * 60 * 1000;
 
+// Vrijeme za potez koje kreator bira (null = bez ogranicenja)
+const ALLOWED_TURN_SECONDS = [15, 40, 60, null];
+const DEFAULT_TURN_SECONDS = 40;
+
+// Kad se igrac vrati poslije prekida, dobije bar ovoliko vremena da nastavi
+const MIN_RESUME_MS = 3000;
+
+// Koliko najduze cekamo TMDB pri provjeri filma
+const TMDB_TIMEOUT_MS = 8000;
+
 // Nazivi zanrova u gridu -> TMDB genre ID
 const GENRE_IDS = {
   Action: 28,
@@ -86,7 +96,8 @@ const checkWinner = (board) => {
 
 const fetchMovie = async (movieId) => {
   const res = await fetch(
-    `${TMDB_BASE_URL}/movie/${movieId}?api_key=${TMDB_KEY}&append_to_response=credits`
+    `${TMDB_BASE_URL}/movie/${movieId}?api_key=${TMDB_KEY}&append_to_response=credits`,
+    { signal: AbortSignal.timeout(TMDB_TIMEOUT_MS) }
   );
 
   if (!res.ok) {
@@ -134,8 +145,24 @@ const matchesCriterion = (movie, criterion) => {
   }
 };
 
-const createGameState = () => ({
+const parseTurnSeconds = (settings) => {
+  if (settings && "turnSeconds" in settings) {
+    const value = settings.turnSeconds;
+    if (ALLOWED_TURN_SECONDS.includes(value)) return value;
+  }
+  return DEFAULT_TURN_SECONDS;
+};
+
+const createGameState = (turnSeconds) => ({
   turn: "X",
+  turnSeconds,
+  // Tajmer poteza. Stanja: radi (turnTimer + turnDeadline), pauziran
+  // (turnRemainingMs, dok je neko odspojen), isteklo dok se film provjerava
+  // (turnExpired), ili ugasen (bez ogranicenja / kraj igre).
+  turnTimer: null,
+  turnDeadline: null,
+  turnRemainingMs: null,
+  turnExpired: false,
   board: Array(9).fill(null),
   grid: generateRandomGrid(),
   // Mjesta u igri. Igrac se prepoznaje po playerId (stalan po tabu),
@@ -152,6 +179,104 @@ const playersStatus = (gameState) => ({
   O: !!gameState.seats.O?.connected,
 });
 
+const bothConnected = (gameState) => {
+  const status = playersStatus(gameState);
+  return status.X && status.O;
+};
+
+// ---------- Tajmer poteza ----------
+
+// Stanje tajmera koje saljemo klijentima. Saljemo preostalo vrijeme, a ne
+// apsolutno vrijeme, jer satovi na serveru i telefonu nisu uskladjeni.
+const timerSnapshot = (gameState) => {
+  let timeLeftMs = null;
+  if (gameState.turnTimer) {
+    timeLeftMs = Math.max(0, gameState.turnDeadline - Date.now());
+  } else if (gameState.turnRemainingMs != null) {
+    timeLeftMs = gameState.turnRemainingMs;
+  } else if (gameState.turnExpired) {
+    timeLeftMs = 0;
+  }
+
+  return {
+    turn: gameState.turn,
+    turnSeconds: gameState.turnSeconds,
+    timeLeftMs,
+    paused: !gameState.turnTimer && gameState.turnRemainingMs != null,
+  };
+};
+
+const stopTurnTimer = (gameState) => {
+  clearTimeout(gameState.turnTimer);
+  gameState.turnTimer = null;
+  gameState.turnDeadline = null;
+  gameState.turnRemainingMs = null;
+  gameState.turnExpired = false;
+};
+
+const runTurnTimer = (roomID, gameState, ms) => {
+  clearTimeout(gameState.turnTimer);
+  gameState.turnRemainingMs = null;
+  gameState.turnExpired = false;
+  gameState.turnDeadline = Date.now() + ms;
+  gameState.turnTimer = setTimeout(
+    () => onTurnTimeout(roomID, gameState),
+    ms
+  );
+};
+
+// Puno vrijeme za igraca koji je upravo dobio potez
+const startTurnTimer = (roomID, gameState) => {
+  stopTurnTimer(gameState);
+  if (gameState.turnSeconds == null || gameState.result) return;
+
+  const ms = gameState.turnSeconds * 1000;
+  if (bothConnected(gameState)) {
+    runTurnTimer(roomID, gameState, ms);
+  } else {
+    gameState.turnRemainingMs = ms; // krece kad se oba igraca povezu
+  }
+};
+
+const pauseTurnTimer = (gameState) => {
+  if (!gameState.turnTimer) return;
+  gameState.turnRemainingMs = Math.max(
+    0,
+    gameState.turnDeadline - Date.now()
+  );
+  clearTimeout(gameState.turnTimer);
+  gameState.turnTimer = null;
+  gameState.turnDeadline = null;
+};
+
+const resumeTurnTimer = (roomID, gameState) => {
+  if (gameState.turnRemainingMs == null || !bothConnected(gameState)) return;
+  runTurnTimer(
+    roomID,
+    gameState,
+    Math.max(gameState.turnRemainingMs, MIN_RESUME_MS)
+  );
+};
+
+const passTurn = (roomID, gameState, reason) => {
+  gameState.turn = gameState.turn === "X" ? "O" : "X";
+  startTurnTimer(roomID, gameState);
+  io.to(roomID).emit("turn_timer", { ...timerSnapshot(gameState), reason });
+};
+
+const onTurnTimeout = (roomID, gameState) => {
+  gameState.turnTimer = null;
+  if (gameStates[roomID] !== gameState || gameState.result) return;
+
+  // Film je poslat na vrijeme i jos se provjerava - potez ce sam predati red
+  if (gameState.pendingMove) {
+    gameState.turnExpired = true;
+    return;
+  }
+
+  passTurn(roomID, gameState, "timeout");
+};
+
 const scheduleCleanupIfEmpty = (roomID) => {
   const gameState = gameStates[roomID];
   if (!gameState) return;
@@ -164,6 +289,7 @@ const scheduleCleanupIfEmpty = (roomID) => {
   clearTimeout(gameState.cleanupTimer);
   gameState.cleanupTimer = setTimeout(() => {
     if (gameStates[roomID] === gameState) {
+      stopTurnTimer(gameState);
       delete gameStates[roomID];
       console.log(`Soba ${roomID} obrisana`);
     }
@@ -192,14 +318,18 @@ const leaveSeat = (socket) => {
   gameState.seats[role].connected = false;
   socket.leave(roomID);
 
+  // Vrijeme ne tece dok je neko odspojen (ionako niko ne moze da igra)
+  pauseTurnTimer(gameState);
+
   io.to(roomID).emit("players_status", playersStatus(gameState));
+  io.to(roomID).emit("turn_timer", timerSnapshot(gameState));
   scheduleCleanupIfEmpty(roomID);
 };
 
 io.on("connection", (socket) => {
   console.log(`Korisnik povezan: ${socket.id}`);
 
-  socket.on("join_room", ({ roomID, playerId } = {}) => {
+  socket.on("join_room", ({ roomID, playerId, settings } = {}) => {
     if (
       typeof roomID !== "string" ||
       !roomID ||
@@ -217,8 +347,9 @@ io.on("connection", (socket) => {
       leaveSeat(socket);
     }
 
+    // Sobu pravi prvi igrac (kreator), pa se uzimaju njegova podesavanja
     if (!gameStates[roomID]) {
-      gameStates[roomID] = createGameState();
+      gameStates[roomID] = createGameState(parseTurnSeconds(settings));
     }
 
     const gameState = gameStates[roomID];
@@ -284,6 +415,15 @@ io.on("connection", (socket) => {
       return;
     }
 
+    // Pocetak igre ili zamjena gosta prije prvog poteza: X dobija puno vrijeme.
+    // Igrac koji se vratio (refresh, prekid) nastavlja preostalo vrijeme.
+    const isNewOccupant = previous?.playerId !== playerId;
+    if (gameState.moveCount === 0 && isNewOccupant) {
+      startTurnTimer(roomID, gameState);
+    } else {
+      resumeTurnTimer(roomID, gameState);
+    }
+
     // Saljemo cijelo stanje, da bi i igrac koji se vratio vidio tablu
     io.to(roomID).emit("game_start", {
       currentTurn: gameState.turn,
@@ -291,6 +431,7 @@ io.on("connection", (socket) => {
       board: gameState.board,
       result: gameState.result,
       players: playersStatus(gameState),
+      timer: timerSnapshot(gameState),
     });
   });
 
@@ -313,6 +454,7 @@ io.on("connection", (socket) => {
     if (gameState.result) return reject("Game is over");
     if (gameState.turn !== role) return reject("Not your turn");
     if (gameState.pendingMove) return reject("Move already in progress");
+    if (gameState.turnExpired) return reject("Time is up");
     if (!Number.isInteger(cellIndex) || cellIndex < 0 || cellIndex > 8)
       return reject("Invalid cell");
     if (gameState.board[cellIndex]) return reject("Cell is already taken");
@@ -328,7 +470,13 @@ io.on("connection", (socket) => {
     } catch (err) {
       console.error("Greska pri provjeri filma", err);
       gameState.pendingMove = false;
-      return reject("Could not verify movie, try again");
+      reject("Could not verify movie, try again");
+
+      // Ako je vrijeme isteklo dok smo cekali TMDB, red prelazi na protivnika
+      if (gameStates[roomID] === gameState && gameState.turnExpired) {
+        passTurn(roomID, gameState, "timeout");
+      }
+      return;
     }
 
     // Soba je mogla biti obrisana dok smo cekali TMDB
@@ -353,6 +501,12 @@ io.on("connection", (socket) => {
     gameState.turn = nextTurn;
     gameState.moveCount++;
 
+    const result = checkWinner(gameState.board);
+    if (result) gameState.result = result;
+
+    // Novi igrac dobija puno vrijeme (ili se tajmer gasi ako je kraj igre)
+    startTurnTimer(roomID, gameState);
+
     io.to(roomID).emit("receive_move", {
       cellIndex,
       isCorrect,
@@ -361,14 +515,31 @@ io.on("connection", (socket) => {
         : null,
       claimedBy: isCorrect ? role : null,
       nextTurn,
+      timer: timerSnapshot(gameState),
     });
 
-    const result = checkWinner(gameState.board);
-
     if (result) {
-      gameState.result = result;
       io.to(roomID).emit("game_end", result);
     }
+  });
+
+  socket.on("skip_turn", () => {
+    const reject = (reason) => socket.emit("move_rejected", { reason });
+
+    const player = getPlayer(socket);
+    if (!player) return reject("You are not a player in this room");
+
+    const { roomID, gameState, role } = player;
+
+    if (!gameState.seats.X || !gameState.seats.O)
+      return reject("Waiting for opponent");
+    if (!bothConnected(gameState)) return reject("Opponent is disconnected");
+    if (gameState.result) return reject("Game is over");
+    if (gameState.turn !== role) return reject("Not your turn");
+    if (gameState.pendingMove) return reject("Move already in progress");
+
+    gameState.moveCount++;
+    passTurn(roomID, gameState, "skip");
   });
 
   socket.on("disconnect", () => {

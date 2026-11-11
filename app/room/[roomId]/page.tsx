@@ -11,6 +11,7 @@ import { Copy } from "lucide-react";
 import Link from "next/link";
 import {
   getPlayerId,
+  getRoomSettings,
   hasJoinedRoom,
   looksLikeBot,
   markRoomJoined,
@@ -42,6 +43,26 @@ type BoardCell = {
 } | null;
 
 type RoomStatus = "connecting" | "invite" | "waiting" | "playing" | "error";
+
+// Stanje tajmera poteza koje salje server
+interface TurnTimer {
+  turn: "X" | "O";
+  turnSeconds: number | null; // null = bez ogranicenja
+  timeLeftMs: number | null;
+  paused: boolean; // vrijeme stoji dok je neko odspojen
+}
+
+// TODO: rezultat serije je zasad hardkodovan, logika dolazi kasnije
+const SCORE_YOU = 0;
+const SCORE_OPP = 0;
+
+// 35000 ms -> "0:35"
+const formatTimeLeft = (ms: number) => {
+  const totalSeconds = Math.ceil(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+};
 
 const MultiPlayerGame = () => {
   const [gridData, setGridData] = useState<{
@@ -83,6 +104,11 @@ const MultiPlayerGame = () => {
   const [copied, setCopied] = useState(false);
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
   const [moveError, setMoveError] = useState<string | null>(null);
+  // Preostalo vrijeme od servera + lokalni trenutak kad je stiglo
+  const [turnTimer, setTurnTimer] = useState<
+    (Omit<TurnTimer, "turn"> & { syncedAt: number }) | null
+  >(null);
+  const [now, setNow] = useState(() => Date.now());
 
   const params = useParams();
   const roomID = params.roomId as string;
@@ -103,10 +129,28 @@ const MultiPlayerGame = () => {
     );
     socketRef.current = socket;
 
+    // settings postoje samo kod kreatora (sacuvani na /room pri kreiranju)
+    const emitJoin = () =>
+      socket.emit("join_room", {
+        roomID,
+        playerId,
+        settings: getRoomSettings(roomID),
+      });
+
     const joinNow = () => {
       joinRequestedRef.current = true;
-      if (socket.connected) socket.emit("join_room", { roomID, playerId });
+      if (socket.connected) emitJoin();
       // Ako jos nije povezan, join_room se salje u "connect" handleru
+    };
+
+    const applyTimer = (timer: TurnTimer) => {
+      setCurrentTurn(timer.turn);
+      setTurnTimer({
+        turnSeconds: timer.turnSeconds,
+        timeLeftMs: timer.timeLeftMs,
+        paused: timer.paused,
+        syncedAt: Date.now(),
+      });
     };
 
     let stopWaiting = () => {};
@@ -131,9 +175,7 @@ const MultiPlayerGame = () => {
       setSlowConnection(false);
       clearTimeout(slowTimer);
       // Salje se i pri svakom ponovnom povezivanju - server nas vraca na isto mjesto
-      if (joinRequestedRef.current) {
-        socket.emit("join_room", { roomID, playerId });
-      }
+      if (joinRequestedRef.current) emitJoin();
     });
 
     socket.on("disconnect", () => {
@@ -163,15 +205,18 @@ const MultiPlayerGame = () => {
         board,
         result,
         players,
+        timer,
       }: {
         currentTurn: "X" | "O";
         grid: { rows: string[]; cols: string[] };
         board: BoardCell[];
         result: GameResult | null;
         players: { X: boolean; O: boolean };
+        timer: TurnTimer;
       }) => {
         setGridData({ rows: grid.rows, cols: grid.cols });
         setCurrentTurn(currentTurn);
+        applyTimer(timer);
 
         // Tabla sa servera (bitno kad se igrac vrati usred igre)
         const guesses: Record<
@@ -195,7 +240,7 @@ const MultiPlayerGame = () => {
 
     socket.on(
       "receive_move",
-      ({ cellIndex, isCorrect, movie, claimedBy, nextTurn }) => {
+      ({ cellIndex, isCorrect, movie, claimedBy, nextTurn, timer }) => {
         if (isCorrect) {
           setGridGuesses((prev) => ({
             ...prev,
@@ -208,8 +253,14 @@ const MultiPlayerGame = () => {
         }
 
         setCurrentTurn(nextTurn);
+        applyTimer(timer);
       }
     );
+
+    // Promjena reda bez poteza (isteklo vrijeme ili skip) i pauza/nastavak tajmera
+    socket.on("turn_timer", (timer: TurnTimer) => {
+      applyTimer(timer);
+    });
 
     socket.on("game_end", (result: GameResult) => {
       setGameResult(result);
@@ -235,15 +286,48 @@ const MultiPlayerGame = () => {
 
     const socket = socketRef.current;
     if (socket?.connected) {
-      socket.emit("join_room", { roomID, playerId: playerIdRef.current });
+      socket.emit("join_room", {
+        roomID,
+        playerId: playerIdRef.current,
+        settings: getRoomSettings(roomID),
+      });
     }
     // Ako jos nije povezan, join_room se salje u "connect" handleru
   };
+
+  // Odbrojavanje: osvjezava prikaz dok tajmer radi
+  const timerRunning =
+    turnTimer?.timeLeftMs != null && !turnTimer.paused && !gameResult;
+
+  useEffect(() => {
+    if (!timerRunning) return;
+    const interval = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(interval);
+  }, [timerRunning]);
+
+  const timeLeftMs =
+    turnTimer?.timeLeftMs == null
+      ? null
+      : turnTimer.paused
+      ? turnTimer.timeLeftMs
+      : Math.max(
+          0,
+          turnTimer.timeLeftMs - Math.max(0, now - turnTimer.syncedAt)
+        );
+
+  const isMyTurn = currentTurn === role;
 
   const handleClick = (cellId: number) => {
     console.log(`Kliknuto je polje sa ID: ${cellId}`);
     setIsCellClicked(true);
     setClickedCell(cellId);
+    setSearchValue("");
+    setSelectedMovie(null);
+  };
+
+  const handleSkip = () => {
+    socketRef.current?.emit("skip_turn");
+    setIsCellClicked(false);
   };
 
   useEffect(() => {
@@ -416,16 +500,64 @@ const MultiPlayerGame = () => {
 
       <Header />
 
-      {/* Status: ko je na potezu / rezultat */}
-      <div className="flex flex-col items-center gap-1 mb-4 px-4 text-center">
+      {/* Iznad grida: rezultat + tajmer lijevo (poravnato sa kolonom kategorija),
+          ko je na potezu / skip desno (poravnato sa desnom ivicom grida).
+          Ista sirina i pomjeraj kao grid. */}
+      <div className="flex items-center justify-between gap-3 mb-3 max-w-md w-full mx-auto md:ml-122">
+        {/* Tajmer je zalijepljen uz rezultat (bez razmaka, iste visine) */}
+        <div className="flex items-stretch">
+          {/* Rezultat serije - TODO: zasad hardkodovan, logika dolazi kasnije.
+              Pozadina kao polja grida (slate-800), YOU/OPP malo svjetlije (slate-700).
+              Uspravna linija u boji igraca (X crveni, O plavi): lijevo od YOU, desno od OPP. */}
+          <div
+            className={`flex items-stretch overflow-hidden bg-slate-800 text-white ${
+              // Kad je tajmer prikazan, desni ugao ostaje ravan da se spoje
+              !gameResult && timeLeftMs != null ? "rounded-l-md" : "rounded-md"
+            }`}
+          >
+            <span
+              className={`flex items-center border-l-4 bg-slate-700 px-3 py-1 font-normal ${
+                role === "X" ? "border-red-500" : "border-blue-500"
+              }`}
+            >
+              YOU
+            </span>
+            <span className="flex items-center px-4 py-1 font-semibold tabular-nums">
+              {SCORE_YOU} : {SCORE_OPP}
+            </span>
+            <span
+              className={`flex items-center border-r-4 bg-slate-700 px-3 py-1 font-normal ${
+                role === "X" ? "border-blue-500" : "border-red-500"
+              }`}
+            >
+              OPP
+            </span>
+          </div>
+
+          {!gameResult && timeLeftMs != null && (
+            <span
+              className={`flex items-center rounded-r-md bg-slate-800 px-3 py-1 font-semibold tabular-nums ${
+                turnTimer?.paused
+                  ? "text-slate-500"
+                  : timeLeftMs <= 5000
+                  ? "text-red-500"
+                  : "text-white"
+              }`}
+              title={turnTimer?.paused ? "Paused" : undefined}
+            >
+              {formatTimeLeft(timeLeftMs)}
+            </span>
+          )}
+        </div>
+
         {gameResult ? (
-          <p
-            className={`text-2xl font-bold ${
+          <span
+            className={`rounded-md px-4 py-1 font-semibold text-white ${
               gameResult.winner === "DRAW"
-                ? "text-slate-300"
+                ? "bg-slate-600"
                 : gameResult.winner === role
-                ? "text-green-400"
-                : "text-red-400"
+                ? "bg-green-600"
+                : "bg-red-600"
             }`}
           >
             {gameResult.winner === "DRAW"
@@ -433,11 +565,25 @@ const MultiPlayerGame = () => {
               : gameResult.winner === role
               ? "You won!"
               : "You lost!"}
-          </p>
+          </span>
+        ) : isMyTurn ? (
+          // "Your turn" i "Skip" spojeni u jedan blok
+          <div className="flex items-stretch font-semibold text-white">
+            <span className="rounded-l-md bg-blue-500 px-4 py-1">
+              Your turn
+            </span>
+            <button
+              onClick={handleSkip}
+              disabled={!isConnected || !opponentOnline}
+              className="rounded-r-md bg-red-500 px-4 py-1 cursor-pointer hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Skip
+            </button>
+          </div>
         ) : (
-          <p className="text-2xl font-bold text-white">
-            {currentTurn === role ? "Your turn" : "Their turn"}
-          </p>
+          <span className="rounded-md bg-slate-600 px-4 py-1 font-semibold text-white">
+            Their turn
+          </span>
         )}
       </div>
 
@@ -516,9 +662,7 @@ const MultiPlayerGame = () => {
       </div>
 
       {!isConnected ? (
-        <p className="mt-4 text-yellow-400">
-          Connection lost, reconnecting...
-        </p>
+        <p className="mt-4 text-yellow-400">Connection lost, reconnecting...</p>
       ) : (
         !opponentOnline &&
         !gameResult && (
@@ -537,7 +681,8 @@ const MultiPlayerGame = () => {
       {/* Footer */}
       <Footer />
 
-      {isCellClicked ? (
+      {/* Prozor za pogadjanje se zatvara cim red predje na protivnika (npr. isteklo vrijeme) */}
+      {isCellClicked && isMyTurn && !gameResult ? (
         <div
           className="fixed inset-0 flex items-center justify-center bg-white/50"
           onClick={() => handleClose()}
@@ -552,6 +697,16 @@ const MultiPlayerGame = () => {
             >
               X
             </button>
+            {/* Odbrojavanje i ovdje, jer prozor pokriva tajmer iznad grida */}
+            {timeLeftMs != null && (
+              <span
+                className={`absolute top-3 left-4 font-bold tabular-nums ${
+                  timeLeftMs <= 5000 ? "text-red-500" : "text-white"
+                }`}
+              >
+                {formatTimeLeft(timeLeftMs)}
+              </span>
+            )}
             <p className="text-slate-400 text-xl mb-6">Enter your guess</p>
 
             {selectedMovie ? (
