@@ -727,12 +727,15 @@ const MultiPlayerGame = () => {
 
       {/* Grid */}
       <div className="grid grid-cols-4 gap-1 w-full">
-        <div className="bg-transparent p-4"></div>
+        <div className="bg-transparent p-1"></div>
 
         {gridData?.cols.map((col: string, index: number) => (
           <div
             key={index}
-            className="bg-transparent flex items-center justify-center p-4 break-words leading-tight text-l text-center "
+            // Mali razmak gore/dole: dugacka imena (3 rijeci) idu u 3 reda, pa bi
+            // sa p-4 red bio previsok i pojavio bi se skrol. Tekst stoji uz dno,
+            // odmah iznad svoje kolone.
+            className="bg-transparent flex items-end justify-center px-1 pt-1 pb-1.5 break-words leading-tight text-l text-center"
           >
             {col.split(":")[1]}
           </div>
