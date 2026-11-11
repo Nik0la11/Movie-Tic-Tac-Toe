@@ -699,16 +699,6 @@ const MultiPlayerGame = () => {
             >
               X
             </button>
-            {/* Odbrojavanje i ovdje, jer prozor pokriva tajmer iznad grida */}
-            {timeLeftMs != null && (
-              <span
-                className={`absolute top-3 left-4 font-bold tabular-nums ${
-                  timeLeftMs <= 5000 ? "text-red-500" : "text-white"
-                }`}
-              >
-                {formatTimeLeft(timeLeftMs)}
-              </span>
-            )}
             <p className="text-slate-400 text-xl mb-6">Enter your guess</p>
 
             {selectedMovie ? (
