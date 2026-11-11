@@ -503,9 +503,11 @@ const MultiPlayerGame = () => {
       {/* Iznad grida: rezultat + tajmer lijevo (poravnato sa kolonom kategorija),
           ko je na potezu / skip desno (poravnato sa desnom ivicom grida).
           Ista sirina i pomjeraj kao grid. */}
-      <div className="flex items-center justify-between gap-3 mb-3 max-w-md w-full mx-auto md:ml-122">
+      {/* Na telefonu: manja slova i razmaci, a tekst se nikad ne lomi u novi red
+          (whitespace-nowrap). Od sm (640px) naviše sve je kao na desktopu. */}
+      <div className="flex items-center justify-between gap-2 sm:gap-3 mb-3 max-w-md w-full mx-auto md:ml-122 text-sm sm:text-base whitespace-nowrap">
         {/* Tajmer je zalijepljen uz rezultat (bez razmaka, iste visine) */}
-        <div className="flex items-stretch">
+        <div className="flex items-stretch shrink-0">
           {/* Rezultat serije - TODO: zasad hardkodovan, logika dolazi kasnije.
               Pozadina kao polja grida (slate-800), YOU/OPP malo svjetlije (slate-700).
               Uspravna linija u boji igraca (X crveni, O plavi): lijevo od YOU, desno od OPP. */}
@@ -516,17 +518,17 @@ const MultiPlayerGame = () => {
             }`}
           >
             <span
-              className={`flex items-center border-l-4 bg-slate-700 px-3 py-1 font-normal ${
+              className={`flex items-center border-l-4 bg-slate-700 px-2 sm:px-3 py-1 font-normal ${
                 role === "X" ? "border-red-500" : "border-blue-500"
               }`}
             >
               YOU
             </span>
-            <span className="flex items-center px-4 py-1 font-semibold tabular-nums">
+            <span className="flex items-center px-2 sm:px-4 py-1 font-semibold tabular-nums">
               {SCORE_YOU} : {SCORE_OPP}
             </span>
             <span
-              className={`flex items-center border-r-4 bg-slate-700 px-3 py-1 font-normal ${
+              className={`flex items-center border-r-4 bg-slate-700 px-2 sm:px-3 py-1 font-normal ${
                 role === "X" ? "border-blue-500" : "border-red-500"
               }`}
             >
@@ -536,7 +538,7 @@ const MultiPlayerGame = () => {
 
           {!gameResult && timeLeftMs != null && (
             <span
-              className={`flex items-center rounded-r-md bg-slate-800 px-3 py-1 font-semibold tabular-nums ${
+              className={`flex items-center rounded-r-md bg-slate-800 px-2 sm:px-3 py-1 font-semibold tabular-nums ${
                 turnTimer?.paused
                   ? "text-slate-500"
                   : timeLeftMs <= 5000
@@ -552,7 +554,7 @@ const MultiPlayerGame = () => {
 
         {gameResult ? (
           <span
-            className={`rounded-md px-4 py-1 font-semibold text-white ${
+            className={`shrink-0 rounded-md px-3 sm:px-4 py-1 font-semibold text-white ${
               gameResult.winner === "DRAW"
                 ? "bg-slate-600"
                 : gameResult.winner === role
@@ -568,20 +570,20 @@ const MultiPlayerGame = () => {
           </span>
         ) : isMyTurn ? (
           // "Your turn" i "Skip" spojeni u jedan blok
-          <div className="flex items-stretch font-semibold text-white">
-            <span className="rounded-l-md bg-blue-500 px-4 py-1">
+          <div className="flex items-stretch shrink-0 font-semibold text-white">
+            <span className="rounded-l-md bg-blue-500 px-2 sm:px-4 py-1">
               Your turn
             </span>
             <button
               onClick={handleSkip}
               disabled={!isConnected || !opponentOnline}
-              className="rounded-r-md bg-red-500 px-4 py-1 cursor-pointer hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-r-md bg-red-500 px-2 sm:px-4 py-1 cursor-pointer hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Skip
             </button>
           </div>
         ) : (
-          <span className="rounded-md bg-slate-600 px-4 py-1 font-semibold text-white">
+          <span className="shrink-0 rounded-md bg-slate-600 px-3 sm:px-4 py-1 font-semibold text-white">
             Their turn
           </span>
         )}
