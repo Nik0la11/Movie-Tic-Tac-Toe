@@ -110,9 +110,10 @@ const SinglePlayerGame = () => {
       const releaseYear = parseInt(data.release_date.split("-")[0]);
       const decade = `${Math.floor(releaseYear / 10) * 10}s`;
       const genres: string[] = data.genres.map((genre: any) => genre.name);
-      const actors: string[] = data.credits.cast
-        .slice(0, 4)
-        .map((actor: any) => actor.name);
+      // Cijeli spisak glumaca (i manje uloge), isto kao na serveru
+      const actors: string[] = data.credits.cast.map(
+        (actor: any) => actor.name
+      );
 
       const completeMovie = {
         id: data.id,

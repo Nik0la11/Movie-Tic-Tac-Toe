@@ -6,9 +6,6 @@ const PORT = process.env.PORT || 4000;
 const TMDB_KEY = process.env.TMDB_KEY;
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
-// Koliko glumaca sa vrha cast liste se racuna (isto kao u scripts/fetch-top-rated-movies.ts)
-const TOP_ACTORS_COUNT = 4;
-
 // Koliko dugo soba ostaje u memoriji kad su svi igraci odspojeni
 // (da bi refresh ili kratak prekid mreze mogli da nastave istu igru)
 const ROOM_CLEANUP_MS = 2 * 60 * 1000;
@@ -131,9 +128,8 @@ const fetchMovie = async (movieId) => {
     directors: (data.credits?.crew || [])
       .filter((member) => member.job === "Director")
       .map((member) => member.name),
-    actors: (data.credits?.cast || [])
-      .slice(0, TOP_ACTORS_COUNT)
-      .map((actor) => actor.name),
+    // Cijeli spisak glumaca, ne samo prvih par: priznaju se i manje uloge
+    actors: (data.credits?.cast || []).map((actor) => actor.name),
   };
 };
 
@@ -437,7 +433,9 @@ const endAbandonedRoom = (roomID, gameState) => {
     }
   }
 
-  console.log(`Soba ${roomID} obrisana (igrac napustio igru ili odbio rematch)`);
+  console.log(
+    `Soba ${roomID} obrisana (igrac napustio igru ili odbio rematch)`
+  );
 };
 
 // Igrac je izasao usred igre: ima ABANDON_MS da se vrati, inace se igra brise
