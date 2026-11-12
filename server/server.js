@@ -181,6 +181,11 @@ const createGameState = (settings) => ({
   matchWinner: null, // "X" | "O" kad je serija gotova
   nextGameTimer: null, // pauza izmedju partija
   drawOfferBy: null, // "X" | "O" - ko je ponudio nerijeseno u ovoj partiji
+  // Ko igra prvi u 1. partiji serije (dalje naizmjenicno). Poslije rematch-a
+  // pocinje onaj ko je u posljednjoj partiji igrao drugi.
+  firstTurn: "X",
+  // "X" | "O" - ko je trazio rematch poslije kraja serije
+  rematchRequestBy: null,
   // Tajmer poteza. Nikad ne staje (ni kad se neko odspoji). Stanja: radi
   // (turnTimer + turnDeadline), isteklo dok se film provjerava (turnExpired),
   // ili ugasen (bez ogranicenja / kraj igre).
@@ -298,8 +303,15 @@ const emitGameState = (roomID, gameState) => {
     gameNumber: gameState.gameNumber,
     matchWinner: gameState.matchWinner,
     drawOfferBy: gameState.drawOfferBy,
+    rematchRequestBy: gameState.rematchRequestBy,
   });
 };
+
+const otherRole = (role) => (role === "X" ? "O" : "X");
+
+// Ko igra prvi u partiji broj gameNumber: naizmjenicno, pocevsi od firstTurn
+const starterOfGame = (gameState, gameNumber) =>
+  gameNumber % 2 === 1 ? gameState.firstTurn : otherRole(gameState.firstTurn);
 
 const startNextGame = (roomID, gameState) => {
   gameState.nextGameTimer = null;
@@ -311,11 +323,40 @@ const startNextGame = (roomID, gameState) => {
   gameState.grid = generateRandomGrid();
   gameState.result = null;
   gameState.drawOfferBy = null;
-  // Prvi potez naizmjenicno: 1. partija X, 2. partija O, 3. X...
-  gameState.turn = gameState.gameNumber % 2 === 1 ? "X" : "O";
+  // Prvi potez naizmjenicno (1. partija firstTurn, 2. drugi igrac, 3. firstTurn...)
+  gameState.turn = starterOfGame(gameState, gameState.gameNumber);
 
   startTurnTimer(roomID, gameState);
   emitGameState(roomID, gameState);
+};
+
+// Oba igraca su prihvatila rematch: potpuno nova serija u istoj sobi.
+// Brise se sve od prosle serije (rezultat, tabla, ponude), ostaju samo
+// igraci na svojim mjestima i podesavanja (vrijeme, best of).
+const startRematch = (roomID, gameState) => {
+  const lastStarter = starterOfGame(gameState, gameState.gameNumber);
+
+  clearTimeout(gameState.nextGameTimer);
+  gameState.nextGameTimer = null;
+  stopTurnTimer(gameState);
+
+  gameState.firstTurn = otherRole(lastStarter);
+  gameState.turn = gameState.firstTurn;
+  gameState.score = { X: 0, O: 0 };
+  gameState.gameNumber = 1;
+  gameState.matchWinner = null;
+  gameState.board = Array(9).fill(null);
+  gameState.grid = generateRandomGrid();
+  gameState.result = null;
+  gameState.drawOfferBy = null;
+  gameState.rematchRequestBy = null;
+  gameState.pendingMove = false;
+  // moveCount se namjerno NE vraca na 0: pravila "prije prvog poteza"
+  // (zamjena gosta, oslobadjanje mjesta) vaze samo za pocetak prve igre u sobi.
+
+  startTurnTimer(roomID, gameState);
+  emitGameState(roomID, gameState);
+  console.log(`Soba ${roomID}: rematch, prvi igra ${gameState.firstTurn}`);
 };
 
 // Partija je gotova: azuriraj rezultat, pa ili zavrsi seriju ili odmah pokreni novu partiju
@@ -368,7 +409,11 @@ const clearRoomTimers = (gameState) => {
   clearTimeout(gameState.abandonTimers.O);
 };
 
-// Igrac je napustio igru: obrisi sobu i javi igracima koji su jos u njoj
+// Obrisi sobu i javi igracima koji su jos u njoj. Link poslije vodi na
+// "This game has ended".
+//  - usred serije: "opponent_left" (poruka na ekranu)
+//  - poslije kraja serije (izlazak ili odbijen rematch): "match_closed"
+//    (igraci se vracaju na pocetnu stranicu)
 const endAbandonedRoom = (roomID, gameState) => {
   if (gameStates[roomID] !== gameState) return;
 
@@ -385,10 +430,14 @@ const endAbandonedRoom = (roomID, gameState) => {
     s.data.roomID = null;
     s.data.role = null;
     s.leave(roomID);
-    s.emit("opponent_left", "Your opponent left the game");
+    if (gameState.matchWinner) {
+      s.emit("match_closed");
+    } else {
+      s.emit("opponent_left", "Your opponent left the game");
+    }
   }
 
-  console.log(`Soba ${roomID} obrisana (igrac napustio igru)`);
+  console.log(`Soba ${roomID} obrisana (igrac napustio igru ili odbio rematch)`);
 };
 
 // Igrac je izasao usred igre: ima ABANDON_MS da se vrati, inace se igra brise
@@ -464,14 +513,9 @@ const leaveSeat = (socket) => {
 
   io.to(roomID).emit("players_status", playersStatus(gameState));
 
-  // Serija je vec gotova: nema sta da se napusti, soba se brise kasnije
-  if (gameState.matchWinner) {
-    scheduleCleanupIfEmpty(roomID);
-    return;
-  }
-
   // Ima ABANDON_MS da se vrati (protivnik za to vrijeme vidi poruku).
-  // Vrijeme za potez i dalje tece.
+  // Vrijeme za potez i dalje tece. Ako je serija vec gotova, a on se ne vrati,
+  // protivnik se vraca na pocetnu stranicu (vidi endAbandonedRoom).
   startAbandonTimer(roomID, gameState, role);
 };
 
@@ -738,6 +782,40 @@ io.on("connection", (socket) => {
     gameState.moveCount++;
     setDrawOffer(roomID, gameState, null);
     endGame(roomID, gameState, { winner: "DRAW", winningLine: [] });
+  });
+
+  // ---------- Rematch (samo poslije kraja serije) ----------
+
+  const getPlayerAfterMatch = () => {
+    const player = getPlayer(socket);
+    if (!player) return null;
+    const { gameState } = player;
+    if (!gameState.matchWinner || !gameState.seats.X || !gameState.seats.O)
+      return null;
+    return player;
+  };
+
+  // Prvi igrac trazi rematch; kad i drugi posalje isti dogadjaj, krece nova serija
+  socket.on("request_rematch", () => {
+    const player = getPlayerAfterMatch();
+    if (!player) return;
+    const { roomID, gameState, role } = player;
+
+    if (gameState.rematchRequestBy === otherRole(role)) {
+      startRematch(roomID, gameState);
+      return;
+    }
+    if (gameState.rematchRequestBy) return; // vec je trazio
+
+    gameState.rematchRequestBy = role;
+    io.to(roomID).emit("rematch_request", { by: role });
+  });
+
+  // Odbijen rematch: soba se brise i oba igraca idu na pocetnu stranicu
+  socket.on("decline_rematch", () => {
+    const player = getPlayerAfterMatch();
+    if (!player) return;
+    endAbandonedRoom(player.roomID, player.gameState);
   });
 
   socket.on("disconnect", () => {

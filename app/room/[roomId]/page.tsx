@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { io, Socket } from "socket.io-client";
 import Footer from "@/app/components/Footer";
 import Header from "@/app/components/Header";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useRef } from "react";
 import { Copy, Plus } from "lucide-react";
 import Link from "next/link";
@@ -113,6 +113,10 @@ const MultiPlayerGame = () => {
   const [gameNumber, setGameNumber] = useState(1);
   // Ko je ponudio nerijeseno u ovoj partiji
   const [drawOfferBy, setDrawOfferBy] = useState<"X" | "O" | null>(null);
+  // Ko je trazio rematch poslije kraja serije
+  const [rematchRequestBy, setRematchRequestBy] = useState<"X" | "O" | null>(
+    null
+  );
   // Drugi klik potvrdjuje ("Are you sure?"). Pamti se stanje u kom je prvi klik
   // bio, pa se potvrda sama ponisti kad se promijeni red, ponuda ili partija.
   const [drawConfirmKey, setDrawConfirmKey] = useState<string | null>(null);
@@ -128,6 +132,7 @@ const MultiPlayerGame = () => {
   const [now, setNow] = useState(() => Date.now());
 
   const params = useParams();
+  const router = useRouter();
   const roomID = params.roomId as string;
 
   useEffect(() => {
@@ -160,7 +165,22 @@ const MultiPlayerGame = () => {
       // Ako jos nije povezan, join_room se salje u "connect" handleru
     };
 
+    // Zatvara prozor za pogadjanje i brise sve sto je u njemu bilo
+    // (ukucan tekst, rezultate pretrage, izabran film)
+    const resetGuessWindow = () => {
+      setIsCellClicked(false);
+      setClickedCell(null);
+      setSearchValue("");
+      setSearchMovies([]);
+      setSelectedMovie(null);
+    };
+
+    // Poziva se samo kad se promijeni red (potez, skip, isteklo vrijeme,
+    // ponuda nerijesenog) ili stigne cijelo stanje igre. Prozor se zato uvijek
+    // zatvori, pa igrac koji nije stigao da izabere film sledeci put vidi
+    // samo grid, a ne stari prozor sa filmom koji je trazio.
     const applyTimer = (timer: TurnTimer) => {
+      resetGuessWindow();
       setCurrentTurn(timer.turn);
       setTurnTimer({
         turnSeconds: timer.turnSeconds,
@@ -206,6 +226,18 @@ const MultiPlayerGame = () => {
       socket.disconnect();
     });
 
+    // Poslije kraja serije: protivnik je odbio rematch ili izasao (i nije se
+    // vratio za 10s), ili smo mi odbili - soba je obrisana, nazad na pocetnu
+    socket.on("match_closed", () => {
+      socket.disconnect();
+      router.replace("/");
+    });
+
+    // Neko je trazio rematch (by = "X"/"O")
+    socket.on("rematch_request", ({ by }: { by: "X" | "O" | null }) => {
+      setRematchRequestBy(by);
+    });
+
     socket.on("room_error", (msg: string) => {
       setRoomError(msg);
       setRoomStatus("error");
@@ -234,6 +266,7 @@ const MultiPlayerGame = () => {
         matchWinner,
         gameNumber,
         drawOfferBy,
+        rematchRequestBy,
       }: {
         currentTurn: "X" | "O";
         grid: { rows: string[]; cols: string[] };
@@ -246,12 +279,15 @@ const MultiPlayerGame = () => {
         matchWinner: "X" | "O" | null;
         gameNumber: number;
         drawOfferBy: "X" | "O" | null;
+        rematchRequestBy: "X" | "O" | null;
       }) => {
         // Stize i za svaku novu partiju u seriji (novi grid, prazna tabla)
         setScore(score);
         setMatchOver(matchWinner != null);
         setGameNumber(gameNumber);
         setDrawOfferBy(drawOfferBy ?? null);
+        // Poslije prihvacenog rematch-a stize null (nova serija)
+        setRematchRequestBy(rematchRequestBy ?? null);
         setIsCellClicked(false);
         setGridData({ rows: grid.rows, cols: grid.cols });
         setCurrentTurn(currentTurn);
@@ -343,7 +379,7 @@ const MultiPlayerGame = () => {
       socket.removeAllListeners();
       socket.disconnect();
     };
-  }, [roomID]);
+  }, [roomID, router]);
 
   // Samo za rijedak slucaj kad looksLikeBot() pogrijesi za pravog korisnika
   const handleJoinGame = () => {
@@ -442,6 +478,53 @@ const MultiPlayerGame = () => {
       {isConfirmingDraw ? "Are you sure?" : "Request draw"}
     </button>
   ) : null;
+
+  // ---------- Rematch (poslije kraja serije) ----------
+
+  // Prvi klik trazi rematch, a kod protivnika isti dogadjaj znaci "prihvatam"
+  const handleRematch = () => socketRef.current?.emit("request_rematch");
+  const handleDeclineRematch = () => socketRef.current?.emit("decline_rematch");
+
+  const rematchButtonClass =
+    "bg-emerald-600 px-2 py-1 font-semibold text-white cursor-pointer hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed";
+
+  // Isto kao drawButton: pored statusa od sm naviše, ispod njega na telefonu
+  const rematchControls =
+    !gameResult || !matchOver ? null : rematchRequestBy === role ? (
+      // Trazio sam - cekam protivnika
+      <button
+        disabled
+        className="rounded-md bg-emerald-600 px-2 py-1 font-semibold text-white opacity-70 cursor-default"
+      >
+        Rematch requested
+      </button>
+    ) : rematchRequestBy === opponent ? (
+      // Protivnik trazi: prihvati (nova serija) ili odbij (oba idu na pocetnu)
+      <div className="flex items-stretch">
+        <button
+          onClick={handleRematch}
+          disabled={!isConnected}
+          className={`rounded-l-md ${rematchButtonClass}`}
+        >
+          Accept rematch
+        </button>
+        <button
+          onClick={handleDeclineRematch}
+          disabled={!isConnected}
+          className="rounded-r-md bg-red-500 px-2 py-1 font-semibold text-white cursor-pointer hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Decline
+        </button>
+      </div>
+    ) : (
+      <button
+        onClick={handleRematch}
+        disabled={!isConnected || !opponentOnline}
+        className={`rounded-md ${rematchButtonClass}`}
+      >
+        Rematch
+      </button>
+    );
 
   useEffect(() => {
     const URL = window.location.href;
@@ -665,7 +748,11 @@ const MultiPlayerGame = () => {
         </div>
 
         {gameResult && matchOver ? (
-          // Kraj cijele serije
+          // Kraj cijele serije: rematch dugmad (od sm naviše) lijevo od rezultata
+          <div className="flex flex-wrap items-center justify-end gap-1 min-w-0">
+          {rematchControls && (
+            <div className="hidden sm:block">{rematchControls}</div>
+          )}
           <span
             className={`shrink-0 rounded-md px-3 sm:px-4 py-1 font-semibold text-white ${
               gameResult.winner === "DRAW"
@@ -681,6 +768,7 @@ const MultiPlayerGame = () => {
               ? "You won!"
               : "You lost!"}
           </span>
+          </div>
         ) : gameResult ? (
           // Pauza izmedju partija u seriji (vidi se pobjednicka linija)
           <span className="shrink-0 rounded-md bg-slate-600 px-3 sm:px-4 py-1 font-semibold text-white">
@@ -720,7 +808,7 @@ const MultiPlayerGame = () => {
       {/* Na telefonu: ponuda nerijesenog ispod "Your turn / Skip", poravnato desno.
           Stalne visine, da grid ne skace kad se dugme pojavi ili nestane. */}
       <div className="sm:hidden flex justify-end items-start h-10 w-full text-sm whitespace-nowrap">
-        {drawButton}
+        {drawButton ?? rematchControls}
       </div>
 
       {/* Grid */}
@@ -818,10 +906,12 @@ const MultiPlayerGame = () => {
         </p>
       ) : (
         !opponentOnline &&
-        !gameResult && (
+        (!gameResult || matchOver) && (
           <p className="fixed bottom-12 left-1/2 -translate-x-1/2 z-40 rounded-md bg-slate-800 px-3 py-1.5 text-sm text-yellow-400 shadow-lg whitespace-nowrap">
-            Opponent disconnected. The game ends if they don&apos;t return in
-            10s.
+            {matchOver
+              ? // Poslije serije: ako se ne vrati, idemo na pocetnu stranicu
+                "Opponent left. Returning home if they don't return in 10s."
+              : "Opponent disconnected. The game ends if they don't return in 10s."}
           </p>
         )
       )}

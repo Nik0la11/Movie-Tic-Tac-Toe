@@ -2,7 +2,7 @@
 
 Stvari koje nisu hitne, ali ih treba imati u vidu.
 
-**Preporučeni redosled:** 1 + 13 + 14 (brze popravke), pa 3 ili 7 kao prvi veći feature.
+**Preporučeni redosled:** 1 + 12 + 13 (brze popravke), pa 3 ili 6 kao prvi veći feature.
 
 ## Igra
 
@@ -15,52 +15,61 @@ Stvari koje nisu hitne, ali ih treba imati u vidu.
 3. **Prikaz mogućih odgovora posle partije.** Kad se partija završi, klik na
    polje pokaže 3–5 filmova koji su odgovarali. Server ima `movies-index.json`,
    pa je dovoljno da ih pošalje tek **posle** kraja partije (nikad tokom igre).
-4. **Rematch.** Posle kraja serije dugme "Play again" u istoj sobi, bez novog linka.
-5. **Nivoi težine pri kreiranju sobe.** Easy: poznati glumci i žanrovi.
+4. **Nivoi težine pri kreiranju sobe.** Easy: poznati glumci i žanrovi.
    Hard: reditelji i decenije.
-6. **Nove vrste kategorija:** Oscar dobitnici, ocena > 8, trajanje > 2h,
+5. **Nove vrste kategorija:** Oscar dobitnici, ocena > 8, trajanje > 2h,
    studio (Pixar, A24), zemlja. Proširiti `scripts/fetch-top-rated-movies.ts`
    i `scripts/movies-index.ts`.
 
 ## Singleplayer
 
-7. **Daily grid.** Svi dobiju isti grid tog dana, kao Wordle (seed = datum).
+6. **Daily grid.** Svi dobiju isti grid tog dana, kao Wordle (seed = datum).
    Na kraju dugme "Share" kopira rezultat kao 🟩🟥 kvadrate. Ovo najbolje
    vraća ljude u igru.
-8. **Igra protiv bota.** Bot igra kao O, sa nivoom težine. Koristi isti
+7. **Igra protiv bota.** Bot igra kao O, sa nivoom težine. Koristi isti
    server kod kao multiplayer.
 
 ## Multiplayer doživljaj
 
-9. **Nadimci.** Upiše se ime pri ulasku, pa umesto YOU/OPP piše npr. *Nikola : Marko*.
-10. **Obaveštenje kad si na potezu.** Kad je tab u pozadini, naslov taba se
+8. **Nadimci.** Upiše se ime pri ulasku, pa umesto YOU/OPP piše npr. *Nikola : Marko*.
+9. **Obaveštenje kad si na potezu.** Kad je tab u pozadini, naslov taba se
     promeni u "🔴 Your turn!" i pusti se kratak zvuk.
-11. **Emoji reakcije** (😂 🔥 😱) koje kratko iskoče protivniku. Zabavnije od
+10. **Emoji reakcije** (😂 🔥 😱) koje kratko iskoče protivniku. Zabavnije od
     chata i ne treba moderacija.
-12. **Quick play.** Dugme koje te spoji sa nasumičnim igračem koji čeka, bez
-    slanja linka.
+11. **Quick play.** Dugme koje te spoji sa nasumičnim igračem koji čeka, bez
+    slanja linka. Procena: pola dana do dan posla.
+    - Server: red čekanja (`find_match`, `cancel_match`). Kad stigne drugi
+      igrač, napravi se soba sa rezervisanim mestima za oba `playerId`-a,
+      bez zamene gosta pre prvog poteza. Obojici se pošalje
+      `match_found { roomID }`, pa ulaze preko postojećeg `join_room`.
+    - Obavezno: izbaciti igrača iz reda na Cancel ili prekid veze, i ne spajati
+      isti `playerId` sa samim sobom.
+    - Podešavanja: fiksna (npr. 40s, Best of 3) ili spajanje samo igrača sa
+      istim izborom.
+    - Glavni problem je malo igrača. Dodati broj igrača koji traže igru,
+      bota kao rezervu posle ~30s (ideja 7) ili "Invite a friend instead".
 
 ## Unapređenja postojećeg
 
-13. **Debounce pretrage.** API se sada zove na svako slovo, a odgovori mogu da
+12. **Debounce pretrage.** API se sada zove na svako slovo, a odgovori mogu da
     stignu pogrešnim redom. Treba ~300ms kašnjenja i odbacivanje zastarelih
     odgovora (AbortController).
-14. **Prozor za pretragu na malim telefonima.** Ima fiksnu širinu `w-96`
+13. **Prozor za pretragu na malim telefonima.** Ima fiksnu širinu `w-96`
     (384px), a mnogi telefoni su široki 360px, pa izlazi van ekrana. Promeniti
     u `w-full max-w-sm mx-4`.
-15. **Tastatura u pretrazi:** strelice gore/dole i Enter za izbor filma.
-16. **Naziv filma na zauzetom polju.** Tap ili hover pokaže koji je film
+14. **Tastatura u pretrazi:** strelice gore/dole i Enter za izbor filma.
+15. **Naziv filma na zauzetom polju.** Tap ili hover pokaže koji je film
     upisan. Sada se vidi samo poster prekriven sa X/O.
 
 ## Tehnika i bezbednost
 
-17. ~~**Zaključati `/api/movies`.**~~ **Urađeno.** Umesto otvorenog proxyja
+16. ~~**Zaključati `/api/movies`.**~~ **Urađeno.** Umesto otvorenog proxyja
     postoje samo `/api/movies/search?query=...` i `/api/movies/[id]`.
-18. **Rate limiting** na socket događaje (`join_room`, `make_move`) i API rute,
+17. **Rate limiting** na socket događaje (`join_room`, `make_move`) i API rute,
     da niko skriptom ne pravi hiljade soba ili ne troši TMDB ključ.
-19. **Automatski testovi servera** u projektu (`server/tests/`, `npm run test:server`):
+18. **Automatski testovi servera** u projektu (`server/tests/`, `npm run test:server`):
     tajmer, serija, nerešeno, napuštanje igre.
-20. **Brže otkrivanje izlaska.** Detalji su u sledećoj sekciji.
+19. **Brže otkrivanje izlaska.** Detalji su u sledećoj sekciji.
 
 ## Brže otkrivanje igrača koji je izgubio internet
 
