@@ -30,7 +30,7 @@ const ABANDON_MS = 10 * 1000;
 
 // Koliko dugo pamtimo da je igra u sobi zavrsena (napustena), da link vodi na
 // poruku "This game has ended" umjesto u novu praznu sobu
-const ENDED_ROOM_MEMORY_MS = 30 * 60 * 1000;
+const ENDED_ROOM_MEMORY_MS = 5 * 60 * 1000;
 
 // Koliko najduze cekamo TMDB pri provjeri filma
 const TMDB_TIMEOUT_MS = 8000;

@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import moviesData from "@/public/top-rated-movies.json";
+import moviesData from "@/data/top-rated-movies.json";
 
 interface Movie {
   id: number;
@@ -12,7 +12,7 @@ interface Movie {
   actors: string[];
 }
 
-const OUTPUT_FILE = path.join(process.cwd(), "/public/movies-index.json");
+const OUTPUT_FILE = path.join(process.cwd(), "/data/movies-index.json");
 
 const movies = moviesData as Movie[];
 

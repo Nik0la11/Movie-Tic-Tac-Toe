@@ -1,4 +1,4 @@
-import indexData from "@/public/movies-index.json";
+import indexData from "@/data/movies-index.json";
 
 const index = indexData as Record<string, number[]>;
 

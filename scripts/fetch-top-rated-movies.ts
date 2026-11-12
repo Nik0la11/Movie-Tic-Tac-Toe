@@ -13,7 +13,7 @@ interface Movie {
 
 const API_KEY = process.env.TMDB_API_KEY;
 const PAGES = 50;
-const OUTPUT_FILE = path.join(process.cwd(), "/public/top-rated-movies.json");
+const OUTPUT_FILE = path.join(process.cwd(), "/data/top-rated-movies.json");
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

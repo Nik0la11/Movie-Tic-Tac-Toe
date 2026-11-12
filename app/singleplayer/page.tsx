@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { useEffect } from "react";
-import { generateRandomGrid } from "@/utils/tmdb";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 
@@ -58,15 +57,24 @@ const SinglePlayerGame = () => {
     setCellCol(colName);
   };
 
+  // Grid pravi server (/api/grid) - spisak odgovora ne smije biti u browseru
   useEffect(() => {
-    function testGrid() {
-      console.log("Zapocinjem generisanje grida: ");
-      const res = generateRandomGrid();
-      console.log(`kolone: ${res?.cols}, redovi: ${res?.rows}`);
-      setGridData(res as { rows: string[]; cols: string[] });
-    }
+    let cancelled = false;
 
-    testGrid();
+    const loadGrid = async () => {
+      try {
+        const res = await fetch("/api/grid", { cache: "no-store" });
+        const grid = (await res.json()) as { rows: string[]; cols: string[] };
+        if (!cancelled) setGridData(grid);
+      } catch (err) {
+        console.error("Greska pri ucitavanju grida", err);
+      }
+    };
+
+    loadGrid();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {

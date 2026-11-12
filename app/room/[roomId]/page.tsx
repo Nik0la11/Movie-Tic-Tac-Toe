@@ -572,30 +572,34 @@ const MultiPlayerGame = () => {
     return (
       <div className="flex flex-col items-center justify-between min-h-screen bg-slate-950">
         <Header />
-        <div className="flex flex-col items-center justify-center bg-slate-950 gap-4">
+        {/* w-full + px-4 + text-center: sve centrirano i na telefonu */}
+        <div className="flex flex-col items-center justify-center w-full max-w-2xl px-4 gap-4 text-center bg-slate-950">
           <div className="flex justify-center items-center gap-2">
             <h3 className="text-xl uppercase text-slate-400">ROOM CODE:</h3>
             <h3 className="text-xl uppercase">{roomID}</h3>
           </div>
-          <h1 className="text-4xl">Share this link with a friend:</h1>
+          <h1 className="text-2xl sm:text-4xl">Share this link with a friend:</h1>
+          {/* Dugi link se lomi unutar dugmeta (break-all) umjesto da izadje van ekrana */}
           <button
             onClick={() => handleCopyLink()}
-            className=" flex items-center justify-center gap-2 cursor-pointer rounded-md p-2 bg-blue-500"
+            className="flex items-center justify-center gap-2 max-w-full cursor-pointer rounded-md p-2 bg-blue-500 hover:bg-blue-600"
           >
-            <h2 className="text-xl  ">Copy link: {currentUrl}</h2>
-            <Copy className="w-5 h-5" />
+            <span className="min-w-0 break-all text-base sm:text-xl">
+              Copy link: {currentUrl}
+            </span>
+            <Copy className="w-5 h-5 shrink-0" />
           </button>
 
           <div
-            className={`fixed top-20 rounded-md p-3 bg-blue-500 font-semibold text-sm transtion-all ease-in duration-300 ${
+            className={`fixed top-20 left-1/2 -translate-x-1/2 rounded-md p-3 bg-blue-500 font-semibold text-sm whitespace-nowrap transition-all ease-in duration-300 ${
               copied ? "opacity-100" : "opacity-0"
             }`}
           >
             URL copied to clipboard
           </div>
 
-          <h3 className="text-xl text-slate-400">
-            The game will start when you friend joins
+          <h3 className="text-lg sm:text-xl text-slate-400">
+            The game will start when your friend joins
           </h3>
         </div>
         <Footer />
