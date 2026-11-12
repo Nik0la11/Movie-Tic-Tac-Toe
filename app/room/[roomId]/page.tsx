@@ -465,16 +465,11 @@ const MultiPlayerGame = () => {
     const fetchMovies = async () => {
       if (searchValue.trim().length < 2) return;
 
-      const searchEncodedValue = encodeURIComponent(searchValue.trim());
-
-      const endpoint = "/search/movie";
-      const params = `&query=${searchEncodedValue}&include_adult=false&language=en-US`;
-
       const res = await fetch(
-        `/api/movies?endpoint=${endpoint}&params=${encodeURIComponent(params)}`
+        `/api/movies/search?query=${encodeURIComponent(searchValue.trim())}`
       );
       const data = await res.json();
-      setSearchMovies(data.results);
+      setSearchMovies(data.results ?? []);
     };
 
     fetchMovies();

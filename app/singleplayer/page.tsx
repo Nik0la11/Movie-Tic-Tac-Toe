@@ -81,16 +81,11 @@ const SinglePlayerGame = () => {
     const fetchMovies = async () => {
       if (searchValue.trim().length < 2) return;
 
-      const searchEncodedValue = encodeURIComponent(searchValue.trim());
-
-      const endpoint = "/search/movie";
-      const params = `&query=${searchEncodedValue}&include_adult=false&language=en-US`;
-
       const res = await fetch(
-        `/api/movies?endpoint=${endpoint}&params=${encodeURIComponent(params)}`
+        `/api/movies/search?query=${encodeURIComponent(searchValue.trim())}`
       );
       const data = await res.json();
-      setSearchMovies(data.results);
+      setSearchMovies(data.results ?? []);
     };
 
     fetchMovies();
@@ -104,12 +99,7 @@ const SinglePlayerGame = () => {
 
   const handleSelectMovieFromSearch = async (movieId: number) => {
     try {
-      const endpoint = `/movie/${movieId}`;
-      const params = "&append_to_response=credits";
-
-      const res = await fetch(
-        `/api/movies?endpoint=${endpoint}&params=${encodeURIComponent(params)}`
-      );
+      const res = await fetch(`/api/movies/${movieId}`);
       const data = await res.json();
       console.log(data);
 
