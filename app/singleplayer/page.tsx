@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useEffect } from "react";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
+import { msUntilNextGrid, todayUTC } from "@/utils/dailyDate";
 
 interface Cell {
   id: number;
@@ -23,11 +24,62 @@ interface Movie {
   actors: string[];
 }
 
+// Dnevni grid sa servera (/api/grid): isti za sve igrace tog dana
+interface DailyGrid {
+  rows: string[];
+  cols: string[];
+  date: string; // "2026-11-13" (UTC)
+  number: number; // redni broj dnevnog grida, za "Share"
+}
+
+type Guesses = Record<number, { poster_path: string; title: string }>;
+
+// Napredak za dan se cuva u browseru, da refresh ne obrise pogodjena polja
+const progressKey = (date: string) => `movie-ttt-daily-${date}`;
+
+const loadProgress = (grid: DailyGrid) => {
+  try {
+    const raw = localStorage.getItem(progressKey(grid.date));
+    if (!raw) return null;
+    const saved = JSON.parse(raw);
+    // Ako se grid za taj dan promijenio (npr. novi movies-index.json), ne vracaj stari napredak
+    if (
+      JSON.stringify(saved.rows) !== JSON.stringify(grid.rows) ||
+      JSON.stringify(saved.cols) !== JSON.stringify(grid.cols)
+    ) {
+      return null;
+    }
+    return saved as { guesses: Guesses; attempts: number };
+  } catch {
+    return null;
+  }
+};
+
+const saveProgress = (grid: DailyGrid, guesses: Guesses, attempts: number) => {
+  try {
+    localStorage.setItem(
+      progressKey(grid.date),
+      JSON.stringify({ rows: grid.rows, cols: grid.cols, guesses, attempts })
+    );
+  } catch {
+    // bez localStorage-a napredak se gubi na refresh
+  }
+};
+
+// 5h 12m / 12m
+const formatCountdown = (ms: number) => {
+  const totalMinutes = Math.ceil(ms / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+};
+
 const SinglePlayerGame = () => {
-  const [gridData, setGridData] = useState<{
-    rows: string[];
-    cols: string[];
-  } | null>(null);
+  const [gridData, setGridData] = useState<DailyGrid | null>(null);
+  // Broj izabranih filmova (tacnih i netacnih) za danasnji grid
+  const [attempts, setAttempts] = useState(0);
+  const [shareCopied, setShareCopied] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
 
   const [cells, setCells] = useState<Cell[]>(
     Array.from({ length: 9 }, (_, index) => ({
@@ -45,9 +97,7 @@ const SinglePlayerGame = () => {
   const [clickedCell, setClickedCell] = useState<number | null>(null);
   const [cellRow, setCellRow] = useState("");
   const [cellCol, setCellCol] = useState("");
-  const [gridGuesses, setGridGuesses] = useState<
-    Record<number, { poster_path: string; title: string }>
-  >({});
+  const [gridGuesses, setGridGuesses] = useState<Guesses>({});
 
   const handleClick = (cellId: number, rowName: string, colName: string) => {
     console.log(`Kliknuto je polje sa ID: ${cellId}`);
@@ -57,15 +107,23 @@ const SinglePlayerGame = () => {
     setCellCol(colName);
   };
 
-  // Grid pravi server (/api/grid) - spisak odgovora ne smije biti u browseru
+  // Dnevni grid pravi server (/api/grid) - spisak odgovora ne smije biti u browseru.
+  // Ucitava se ponovo kad pocne novi dan (currentDate se promijeni).
+  const currentDate = todayUTC(now);
   useEffect(() => {
     let cancelled = false;
 
     const loadGrid = async () => {
       try {
         const res = await fetch("/api/grid", { cache: "no-store" });
-        const grid = (await res.json()) as { rows: string[]; cols: string[] };
-        if (!cancelled) setGridData(grid);
+        const grid = (await res.json()) as DailyGrid;
+        if (cancelled) return;
+
+        const saved = loadProgress(grid);
+        setGridGuesses(saved?.guesses ?? {});
+        setAttempts(saved?.attempts ?? 0);
+        setIsCellClicked(false);
+        setGridData(grid);
       } catch (err) {
         console.error("Greska pri ucitavanju grida", err);
       }
@@ -75,7 +133,49 @@ const SinglePlayerGame = () => {
     return () => {
       cancelled = true;
     };
+  }, [currentDate]);
+
+  // Sat za odbrojavanje do sledeceg grida (i prelazak na novi dan)
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(interval);
   }, []);
+
+  // Cuvaj napredak cim se promijeni
+  useEffect(() => {
+    if (gridData) saveProgress(gridData, gridGuesses, attempts);
+  }, [gridData, gridGuesses, attempts]);
+
+  const solvedCount = Object.keys(gridGuesses).length;
+  const isComplete = solvedCount === 9;
+
+  // Rezultat za dijeljenje, npr:
+  // Movie Tic Tac Toe #3
+  // 🟩🟩⬜
+  // ...
+  // 6/9 in 8 guesses
+  const handleShare = async () => {
+    if (!gridData) return;
+    const rows = [0, 1, 2]
+      .map((r) =>
+        [0, 1, 2].map((c) => (gridGuesses[r * 3 + c] ? "🟩" : "⬜")).join("")
+      )
+      .join("\n");
+    const text = [
+      `Movie Tic Tac Toe #${gridData.number}`,
+      rows,
+      `${solvedCount}/9 in ${attempts} ${attempts === 1 ? "guess" : "guesses"}`,
+      `${window.location.origin}/singleplayer`,
+    ].join("\n");
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch (err) {
+      console.error("Greska u kopiranju rezultata", err);
+    }
+  };
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -134,6 +234,9 @@ const SinglePlayerGame = () => {
   };
 
   const handleChooseMovie = (movie: Movie) => {
+    // Svaki izabran film je pokusaj, tacan ili ne
+    setAttempts((a) => a + 1);
+
     const rowType = cellRow.split(":")[0];
     const rowValue = cellRow.split(":")[1];
     const colType = cellCol.split(":")[0];
@@ -233,6 +336,31 @@ const SinglePlayerGame = () => {
       {/* Header */}
 
       <Header />
+
+      {/* Dnevni grid: broj, napredak, share i vrijeme do sledeceg */}
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-2 max-w-md w-full mx-auto md:ml-122 px-1 text-sm">
+        <div className="flex flex-col">
+          <span className="font-semibold text-white">
+            Daily grid #{gridData.number}
+          </span>
+          <span className="text-slate-400">
+            {isComplete ? "Solved! " : `${solvedCount}/9 · `}
+            {attempts} {attempts === 1 ? "guess" : "guesses"}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-slate-400">
+            Next grid in {formatCountdown(msUntilNextGrid(now))}
+          </span>
+          <button
+            onClick={handleShare}
+            disabled={attempts === 0}
+            className="rounded-md bg-emerald-600 px-3 py-1 font-semibold text-white cursor-pointer hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {shareCopied ? "Copied!" : "Share"}
+          </button>
+        </div>
+      </div>
 
       {/* Grid */}
       <div className="grid grid-cols-4 gap-1 max-w-md w-full mx-auto md:ml-122">

@@ -1,4 +1,5 @@
 import indexData from "@/data/movies-index.json";
+import { dailyGridNumber, todayUTC } from "@/utils/dailyDate";
 
 const index = indexData as Record<string, number[]>;
 
@@ -9,7 +10,34 @@ function haveSameMovie(key1: string, key2: string): boolean {
   return ids1.some((id) => ids2.includes(id));
 }
 
-export function generateRandomGrid() {
+// Generator slucajnih brojeva sa seed-om (mulberry32): isti seed uvijek daje
+// isti niz brojeva, pa svi igraci dobiju isti grid za isti dan.
+function seededRandom(seed: string) {
+  // seed (npr. "2026-11-13") -> 32-bitni broj
+  let h = 1779033703 ^ seed.length;
+  for (let i = 0; i < seed.length; i++) {
+    h = Math.imul(h ^ seed.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  let a = h >>> 0;
+
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Isti grid za sve igrace tog dana (singleplayer). Mijenja se u ponoc po UTC-u.
+export function generateDailyGrid(date = todayUTC()) {
+  const grid = generateRandomGrid(seededRandom(`daily-${date}`));
+  return { ...grid, date, number: dailyGridNumber(date) };
+}
+
+// random: izvor slucajnih brojeva. Multiplayer koristi Math.random (svaka
+// partija drugaciji grid), a dnevni grid seededRandom (isti za sve).
+export function generateRandomGrid(random: () => number = Math.random) {
   const allKeys = Object.keys(index);
 
   const allActors = allKeys.filter((k) => k.startsWith("actor"));
@@ -24,9 +52,9 @@ export function generateRandomGrid() {
 
     while (rows.length < 3) {
       const randomKey =
-        Math.random() > 0.5
-          ? allGenres[Math.floor(Math.random() * allGenres.length)]
-          : allDecades[Math.floor(Math.random() * allDecades.length)];
+        random() > 0.5
+          ? allGenres[Math.floor(random() * allGenres.length)]
+          : allDecades[Math.floor(random() * allDecades.length)];
 
       if (!rows.includes(randomKey)) rows.push(randomKey);
     }
@@ -58,7 +86,7 @@ export function generateRandomGrid() {
     while (cols.length < 3) {
       const randomKey =
         validColsForThisRows[
-          Math.floor(Math.random() * validColsForThisRows.length)
+          Math.floor(random() * validColsForThisRows.length)
         ];
 
       if (!cols.includes(randomKey)) cols.push(randomKey);

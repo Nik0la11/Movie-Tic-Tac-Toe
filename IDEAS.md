@@ -4,6 +4,21 @@ Stvari koje nisu hitne, ali ih treba imati u vidu.
 
 **Preporučeni redosled:** 1 + 12 + 13 (brze popravke), pa 3 ili 6 kao prvi veći feature.
 
+## Poznati problemi
+
+- **Glumac ili režiser? Grid ne prikazuje razliku.** Kolona prikazuje samo
+  ime (`col.split(":")[1]`), pa se `actor:Clint Eastwood` i
+  `director:Clint Eastwood` vide isto: "Clint Eastwood". Igrač ne može da zna
+  šta se traži.
+  - Primer: kolona *režiser* Clint Eastwood × Western. Igrač upiše *The Good,
+    the Bad and the Ugly*, u kojem Eastwood glumi, ali ga je režirao Sergio
+    Leone, pa film bude odbijen. Tačan odgovor je *Unforgiven*.
+  - Pogođena imena (i glumac i režiser u `data/movies-index.json`): Clint
+    Eastwood, Mel Gibson, Orson Welles, Roberto Benigni, Sean Penn, Taika Waititi.
+  - Rešenje: mala oznaka "director" ispod imena kad je kolona `director:` u
+    `app/room/[roomId]/page.tsx` i `app/singleplayer/page.tsx`. Server se ne
+    menja.
+
 ## Igra
 
 1. **Isti film ne može dva puta.** Sada isti film može da se upiše u više
@@ -23,9 +38,9 @@ Stvari koje nisu hitne, ali ih treba imati u vidu.
 
 ## Singleplayer
 
-6. **Daily grid.** Svi dobiju isti grid tog dana, kao Wordle (seed = datum).
-   Na kraju dugme "Share" kopira rezultat kao 🟩🟥 kvadrate. Ovo najbolje
-   vraća ljude u igru.
+6. ~~**Daily grid.**~~ **Urađeno.** Singleplayer ima isti grid za sve tog dana
+   (UTC), napredak se čuva u browseru, a "Share" kopira 🟩⬜ rezultat.
+   Moguće dorade: ograničen broj pokušaja (npr. 9) i statistika (niz dana).
 7. **Igra protiv bota.** Bot igra kao O, sa nivoom težine. Koristi isti
    server kod kao multiplayer.
 
