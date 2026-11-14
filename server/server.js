@@ -1,10 +1,10 @@
 const http = require("http");
 const { Server } = require("socket.io");
 const { generateRandomGrid } = require("@/utils/tmdb");
+// Provjera filma preko TMDB-a - ista kao u singleplayeru (/api/check)
+const { fetchMovie, movieFitsCell } = require("@/utils/movieCheck");
 
 const PORT = process.env.PORT || 4000;
-const TMDB_KEY = process.env.TMDB_KEY;
-const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
 // Koliko dugo soba ostaje u memoriji kad su svi igraci odspojeni
 // (da bi refresh ili kratak prekid mreze mogli da nastave istu igru)
@@ -28,32 +28,6 @@ const ABANDON_MS = 10 * 1000;
 // Koliko dugo pamtimo da je igra u sobi zavrsena (napustena), da link vodi na
 // poruku "This game has ended" umjesto u novu praznu sobu
 const ENDED_ROOM_MEMORY_MS = 5 * 60 * 1000;
-
-// Koliko najduze cekamo TMDB pri provjeri filma
-const TMDB_TIMEOUT_MS = 8000;
-
-// Nazivi zanrova u gridu -> TMDB genre ID
-const GENRE_IDS = {
-  Action: 28,
-  Adventure: 12,
-  Animation: 16,
-  Comedy: 35,
-  Crime: 80,
-  Documentary: 99,
-  Drama: 18,
-  Family: 10751,
-  Fantasy: 14,
-  History: 36,
-  Horror: 27,
-  Music: 10402,
-  Mystery: 9648,
-  Romance: 10749,
-  "Sci-Fi": 878,
-  "TV Movie": 10770,
-  Thriller: 53,
-  War: 10752,
-  Western: 37,
-};
 
 const server = http.createServer();
 
@@ -101,56 +75,6 @@ const checkWinner = (board) => {
   }
 
   return null;
-};
-
-const fetchMovie = async (movieId) => {
-  const res = await fetch(
-    `${TMDB_BASE_URL}/movie/${movieId}?api_key=${TMDB_KEY}&append_to_response=credits`,
-    { signal: AbortSignal.timeout(TMDB_TIMEOUT_MS) }
-  );
-
-  if (!res.ok) {
-    throw new Error(`TMDB vratio status ${res.status} za film ${movieId}`);
-  }
-
-  const data = await res.json();
-
-  const releaseYear = parseInt((data.release_date || "").split("-")[0]);
-
-  return {
-    id: data.id,
-    title: data.title,
-    poster_path: data.poster_path,
-    decade: Number.isNaN(releaseYear)
-      ? null
-      : `${Math.floor(releaseYear / 10) * 10}s`,
-    genreIds: (data.genres || []).map((genre) => genre.id),
-    directors: (data.credits?.crew || [])
-      .filter((member) => member.job === "Director")
-      .map((member) => member.name),
-    // Cijeli spisak glumaca, ne samo prvih par: priznaju se i manje uloge
-    actors: (data.credits?.cast || []).map((actor) => actor.name),
-  };
-};
-
-// criterion je u formatu "tip:vrijednost", npr. "genre:Sci-Fi", "actor:Brad Pitt"
-const matchesCriterion = (movie, criterion) => {
-  const separatorIndex = criterion.indexOf(":");
-  const type = criterion.slice(0, separatorIndex);
-  const value = criterion.slice(separatorIndex + 1);
-
-  switch (type) {
-    case "genre":
-      return movie.genreIds.includes(GENRE_IDS[value]);
-    case "decade":
-      return movie.decade === value;
-    case "actor":
-      return movie.actors.includes(value);
-    case "director":
-      return movie.directors.includes(value);
-    default:
-      return false;
-  }
 };
 
 // Uzima vrijednost iz podesavanja kreatora ako je dozvoljena, inace podrazumijevanu
@@ -673,11 +597,7 @@ io.on("connection", (socket) => {
     if (gameStates[roomID] !== gameState) return;
     gameState.pendingMove = false;
 
-    const row = gameState.grid.rows[Math.floor(cellIndex / 3)];
-    const col = gameState.grid.cols[cellIndex % 3];
-
-    const isCorrect =
-      matchesCriterion(movie, row) && matchesCriterion(movie, col);
+    const isCorrect = movieFitsCell(movie, gameState.grid, cellIndex);
 
     if (isCorrect) {
       gameState.board[cellIndex] = {

@@ -11,6 +11,37 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Polje se zatrese kad film ne odgovara (klasa animate-shake) */
+  --animate-shake: shake 0.45s ease-in-out;
+  /* Prozor sa rezultatom "iskoci" (klasa animate-pop) */
+  --animate-pop: pop 0.3s ease-out;
+
+  @keyframes shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    20%,
+    60% {
+      transform: translateX(-6px);
+    }
+    40%,
+    80% {
+      transform: translateX(6px);
+    }
+  }
+
+  @keyframes pop {
+    0% {
+      transform: scale(0.85);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
 }
 
 body {

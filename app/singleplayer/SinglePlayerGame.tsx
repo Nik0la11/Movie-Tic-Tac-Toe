@@ -1,27 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
-import { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import { msUntilNextGrid, todayUTC } from "@/utils/dailyDate";
+import { gridPosterUrl, preloadGridPoster } from "@/utils/poster";
 
-interface Cell {
-  id: number;
-  status: "empty" | "correct" | "failed";
-  movieTitle: string;
-  claimedBy: "X" | "O" | null;
-}
-
+// Rezultat pretrage filmova
 interface Movie {
   id: number;
   title: string;
-  poster_path: string;
-  year: number;
-  decade: string;
-  director: string;
-  genres: string[];
-  actors: string[];
+  poster_path: string | null;
 }
 
 // Dnevni grid: isti za sve igrace tog dana. Pravi ga server (page.tsx ili
@@ -33,7 +22,14 @@ export interface DailyGrid {
   number: number; // redni broj dnevnog grida, za "Share"
 }
 
-type Guesses = Record<number, { poster_path: string; title: string }>;
+// Pogodjeno polje -> film (id sluzi da se isti film ne upise dva puta)
+type Guesses = Record<
+  number,
+  { id?: number; poster_path: string | null; title: string }
+>;
+
+// Koliko filmova igrac moze da izabere (tacnih i netacnih) za jedan grid
+const MAX_GUESSES = 9;
 
 // Napredak za dan se cuva u browseru, da refresh ne obrise pogodjena polja
 const progressKey = (date: string) => `movie-ttt-daily-${date}`;
@@ -75,12 +71,19 @@ const formatCountdown = (ms: number) => {
   return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 };
 
+// 🟩 pogodjeno, ⬜ nije (za "Share" i prozor sa rezultatom)
+const resultRows = (guesses: Guesses) =>
+  [0, 1, 2].map((r) =>
+    [0, 1, 2].map((c) => (guesses[r * 3 + c] ? "🟩" : "⬜")).join("")
+  );
+
 // initialGrid stize sa servera zajedno sa stranicom, pa se grid vidi odmah
 // (bez praznog ekrana dok se ceka /api/grid)
 const SinglePlayerGame = ({ initialGrid }: { initialGrid: DailyGrid }) => {
   const [gridData, setGridData] = useState<DailyGrid>(initialGrid);
   // Broj izabranih filmova (tacnih i netacnih) za danasnji grid
   const [attempts, setAttempts] = useState(0);
+  const [gridGuesses, setGridGuesses] = useState<Guesses>({});
   const [shareCopied, setShareCopied] = useState(false);
   // Za koji datum je napredak iz localStorage vec ucitan. Dok nije, napredak
   // se ne cuva (da prazna tabla ne prepise sacuvana pogodjena polja).
@@ -89,31 +92,28 @@ const SinglePlayerGame = ({ initialGrid }: { initialGrid: DailyGrid }) => {
   // razlikuju, pa bi odbrojavanje u HTML-u sa servera bilo pogresno
   const [now, setNow] = useState<number | null>(null);
 
-  const [cells, setCells] = useState<Cell[]>(
-    Array.from({ length: 9 }, (_, index) => ({
-      id: index,
-      status: "empty",
-      movieTitle: "",
-      claimedBy: null,
-    }))
-  );
-
   const [isCellClicked, setIsCellClicked] = useState(false);
+  const [clickedCell, setClickedCell] = useState<number | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [searchMovies, setSearchMovies] = useState<Movie[]>([]);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-  const [clickedCell, setClickedCell] = useState<number | null>(null);
-  const [cellRow, setCellRow] = useState("");
-  const [cellCol, setCellCol] = useState("");
-  const [gridGuesses, setGridGuesses] = useState<Guesses>({});
+  // Server provjerava film (dugme "Choose" je zakljucano)
+  const [checking, setChecking] = useState(false);
 
-  const handleClick = (cellId: number, rowName: string, colName: string) => {
-    console.log(`Kliknuto je polje sa ID: ${cellId}`);
-    setIsCellClicked(true);
-    setClickedCell(cellId);
-    setCellRow(rowName);
-    setCellCol(colName);
-  };
+  // Kratka poruka iznad grida, npr. "Inception doesn't fit"
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Polje koje se trese posle netacnog filma (key ponovo pokrece animaciju)
+  const [shake, setShake] = useState<{ cell: number; key: number } | null>(
+    null
+  );
+  // Prozor sa rezultatom na kraju igre
+  const [showResults, setShowResults] = useState(false);
+
+  const solvedCount = Object.keys(gridGuesses).length;
+  const guessesLeft = Math.max(0, MAX_GUESSES - attempts);
+  // Kraj: sve pogodjeno ili nema vise pokusaja
+  const isGameOver = solvedCount === 9 || attempts >= MAX_GUESSES;
 
   // Danasnji datum u browseru (prije pokretanja: datum grida sa servera)
   const currentDate = now == null ? initialGrid.date : todayUTC(now);
@@ -126,6 +126,7 @@ const SinglePlayerGame = ({ initialGrid }: { initialGrid: DailyGrid }) => {
       setGridGuesses(saved?.guesses ?? {});
       setAttempts(saved?.attempts ?? 0);
       setIsCellClicked(false);
+      setShowResults(false);
       setGridData(grid);
       setProgressDate(grid.date);
     };
@@ -170,36 +171,6 @@ const SinglePlayerGame = ({ initialGrid }: { initialGrid: DailyGrid }) => {
     }
   }, [gridData, gridGuesses, attempts, progressDate]);
 
-  const solvedCount = Object.keys(gridGuesses).length;
-  const isComplete = solvedCount === 9;
-
-  // Rezultat za dijeljenje, npr:
-  // Movie Tic Tac Toe #3
-  // 🟩🟩⬜
-  // ...
-  // 6/9 in 8 guesses
-  const handleShare = async () => {
-    const rows = [0, 1, 2]
-      .map((r) =>
-        [0, 1, 2].map((c) => (gridGuesses[r * 3 + c] ? "🟩" : "⬜")).join("")
-      )
-      .join("\n");
-    const text = [
-      `Movie Tic Tac Toe #${gridData.number}`,
-      rows,
-      `${solvedCount}/9 in ${attempts} ${attempts === 1 ? "guess" : "guesses"}`,
-      `${window.location.origin}/singleplayer`,
-    ].join("\n");
-
-    try {
-      await navigator.clipboard.writeText(text);
-      setShareCopied(true);
-      setTimeout(() => setShareCopied(false), 2000);
-    } catch (err) {
-      console.error("Greska u kopiranju rezultata", err);
-    }
-  };
-
   useEffect(() => {
     const fetchMovies = async () => {
       if (searchValue.trim().length < 2) return;
@@ -214,141 +185,157 @@ const SinglePlayerGame = ({ initialGrid }: { initialGrid: DailyGrid }) => {
     fetchMovies();
   }, [searchValue]);
 
-  const handleClose = () => {
-    setIsCellClicked(false);
-    setSearchValue("");
-    setSelectedMovie(null);
+  useEffect(
+    () => () => {
+      if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+    },
+    []
+  );
+
+  const showFeedback = (text: string) => {
+    setFeedback(text);
+    if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+    feedbackTimerRef.current = setTimeout(() => setFeedback(null), 2500);
   };
 
-  const handleSelectMovieFromSearch = async (movieId: number) => {
+  // Rezultat za dijeljenje, npr:
+  // Movie Tic Tac Toe #3
+  // 🟩🟩⬜
+  // ...
+  // 6/9 · 9/9 guesses
+  const handleShare = async () => {
+    const text = [
+      `Movie Tic Tac Toe #${gridData.number}`,
+      ...resultRows(gridGuesses),
+      `${solvedCount}/9 · ${attempts}/${MAX_GUESSES} guesses`,
+      `${window.location.origin}/singleplayer`,
+    ].join("\n");
+
     try {
-      const res = await fetch(`/api/movies/${movieId}`);
-      const data = await res.json();
-      console.log(data);
-
-      const directorObject = data.credits.crew.find(
-        (member: any) => member.job === "Director"
-      );
-
-      const releaseYear = parseInt(data.release_date.split("-")[0]);
-      const decade = `${Math.floor(releaseYear / 10) * 10}s`;
-      const genres: string[] = data.genres.map((genre: any) => genre.name);
-      // Cijeli spisak glumaca (i manje uloge), isto kao na serveru
-      const actors: string[] = data.credits.cast.map(
-        (actor: any) => actor.name
-      );
-
-      const completeMovie = {
-        id: data.id,
-        title: data.title,
-        poster_path: data.poster_path,
-        year: releaseYear,
-        decade: decade,
-        director: directorObject ? directorObject.name : "Unknown Director",
-        genres: genres,
-        actors: actors || [],
-      };
-
-      setSelectedMovie(completeMovie);
-      setSearchValue("");
+      await navigator.clipboard.writeText(text);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
     } catch (err) {
-      console.error("Error: ", err);
+      console.error("Greska u kopiranju rezultata", err);
     }
   };
 
-  const handleChooseMovie = (movie: Movie) => {
-    // Svaki izabran film je pokusaj, tacan ili ne
-    setAttempts((a) => a + 1);
+  const handleClick = (cellId: number) => {
+    if (isGameOver) return;
+    setIsCellClicked(true);
+    setClickedCell(cellId);
+    setSearchValue("");
+    setSelectedMovie(null);
+  };
 
-    const rowType = cellRow.split(":")[0];
-    const rowValue = cellRow.split(":")[1];
-    const colType = cellCol.split(":")[0];
-    const colValue = cellCol.split(":")[1];
-
-    // Ovo promijeniti da poredi idejeve umjeseto imena zanrova
-
-    switch (true) {
-      case rowType === "genre" && colType === "actor": {
-        let genreToComapre = rowValue;
-
-        if (rowValue === "Sci-Fi") {
-          genreToComapre = "Science Fiction";
-        }
-
-        if (
-          movie.actors.some((actor) => actor === colValue) &&
-          movie.genres.some((genre) => genre === genreToComapre)
-        ) {
-          setGridGuesses((prev) => ({
-            ...prev,
-            [clickedCell!]: {
-              poster_path: movie.poster_path,
-              title: movie.title,
-            },
-          }));
-        }
-        break;
-      }
-
-      case rowType === "genre" && colType === "director": {
-        let genreToComapre = rowValue;
-
-        if (rowValue === "Sci-Fi") {
-          genreToComapre = "Science Fiction";
-        }
-
-        if (
-          movie.director === colValue &&
-          movie.genres.some((genre) => genre === genreToComapre)
-        ) {
-          setGridGuesses((prev) => ({
-            ...prev,
-            [clickedCell!]: {
-              poster_path: movie.poster_path,
-              title: movie.title,
-            },
-          }));
-        }
-        break;
-      }
-
-      case rowType === "decade" && colType === "actor": {
-        if (
-          movie.actors.some((actor) => actor === colValue) &&
-          movie.decade === rowValue
-        ) {
-          setGridGuesses((prev) => ({
-            ...prev,
-            [clickedCell!]: {
-              poster_path: movie.poster_path,
-              title: movie.title,
-            },
-          }));
-        }
-        break;
-      }
-
-      case rowType === "decade" && colType === "director": {
-        if (movie.director === colValue && movie.decade === rowValue) {
-          setGridGuesses((prev) => ({
-            ...prev,
-            [clickedCell!]: {
-              poster_path: movie.poster_path,
-              title: movie.title,
-            },
-          }));
-        }
-        break;
-      }
-
-      default:
-        console.log("Greska");
-    }
-
+  const handleClose = () => {
+    if (checking) return;
     setIsCellClicked(false);
     setSearchValue("");
     setSelectedMovie(null);
   };
+
+  const handleSelectMovieFromSearch = (movie: Movie) => {
+    // Poster se skida odmah, da se pojavi cim server potvrdi film
+    preloadGridPoster(movie.poster_path);
+    setSelectedMovie(movie);
+    setSearchValue("");
+  };
+
+  // Film provjerava server (/api/check), istim kodom kao multiplayer
+  const handleChooseMovie = async (movie: Movie) => {
+    if (clickedCell === null || checking || isGameOver) return;
+    const cell = clickedCell;
+
+    // Isti film samo jednom na tabli (ne trosi pokusaj)
+    if (Object.values(gridGuesses).some((g) => g.id === movie.id)) {
+      showFeedback(`${movie.title} is already on the board`);
+      setSelectedMovie(null);
+      return;
+    }
+
+    setChecking(true);
+    let data: {
+      correct: boolean;
+      movie: { id: number; title: string; poster_path: string | null };
+    };
+    try {
+      const res = await fetch("/api/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: gridData.date,
+          cellIndex: cell,
+          movieId: movie.id,
+        }),
+      });
+      data = await res.json();
+      if (!res.ok) throw new Error((data as unknown as { error: string }).error);
+    } catch (err) {
+      // Greska servera/TMDB-a ne trosi pokusaj
+      console.error("Greska pri provjeri filma", err);
+      showFeedback("Could not check the movie, try again");
+      setChecking(false);
+      return;
+    }
+
+    setChecking(false);
+    setIsCellClicked(false);
+    setSearchValue("");
+    setSelectedMovie(null);
+
+    // Svaki provjeren film je pokusaj, tacan ili ne
+    const newAttempts = attempts + 1;
+    let newSolved = solvedCount;
+    setAttempts(newAttempts);
+
+    if (data.correct) {
+      newSolved++;
+      setGridGuesses((prev) => ({
+        ...prev,
+        [cell]: {
+          id: data.movie.id,
+          poster_path: data.movie.poster_path,
+          title: data.movie.title,
+        },
+      }));
+    } else {
+      setShake({ cell, key: Date.now() });
+      showFeedback(`${data.movie.title} doesn't fit`);
+    }
+
+    // Kraj igre: kratka pauza da se vidi poster ili trešenje, pa rezultat
+    if (newSolved === 9 || newAttempts >= MAX_GUESSES) {
+      setTimeout(() => setShowResults(true), 700);
+    }
+  };
+
+  // Isti film samo jednom na tabli: vec iskoriscen film ne moze da se izabere
+  const usedMovieIds = Object.values(gridGuesses).map((g) => g.id);
+  const isSelectedUsed =
+    selectedMovie != null && usedMovieIds.includes(selectedMovie.id);
+  const canChooseSelected = selectedMovie != null && !isSelectedUsed;
+
+  // Samo za lokalno testiranje (npm run dev): brise danasnji napredak.
+  // Na Vercelu (production build) dugme ne postoji.
+  const handleResetToday = () => {
+    try {
+      localStorage.removeItem(progressKey(gridData.date));
+    } catch {}
+    setGridGuesses({});
+    setAttempts(0);
+    setShowResults(false);
+    setIsCellClicked(false);
+  };
+
+  const resultTitle =
+    solvedCount === 9
+      ? "Perfect grid! 🎉"
+      : solvedCount >= 6
+      ? "Great job!"
+      : solvedCount >= 3
+      ? "Nice try!"
+      : "Better luck tomorrow!";
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950">
@@ -356,29 +343,53 @@ const SinglePlayerGame = ({ initialGrid }: { initialGrid: DailyGrid }) => {
 
       <Header />
 
-      {/* Dnevni grid: broj, napredak, share i vrijeme do sledeceg */}
+      {/* Dnevni grid: broj, napredak, preostali pokusaji, share */}
       <div className="flex flex-wrap items-center justify-between gap-2 mb-2 max-w-md w-full mx-auto md:ml-122 px-1 text-sm">
         <div className="flex flex-col">
           <span className="font-semibold text-white">
             Daily grid #{gridData.number}
           </span>
           <span className="text-slate-400">
-            {isComplete ? "Solved! " : `${solvedCount}/9 · `}
-            {attempts} {attempts === 1 ? "guess" : "guesses"}
+            {solvedCount}/9 solved ·{" "}
+            <span
+              className={
+                guessesLeft <= 2 && !isGameOver ? "text-red-400" : undefined
+              }
+            >
+              {guessesLeft} {guessesLeft === 1 ? "guess" : "guesses"} left
+            </span>
           </span>
         </div>
         <div className="flex items-center gap-2">
+          {process.env.NODE_ENV === "development" && (
+            <button
+              onClick={handleResetToday}
+              title="Dev only: reset today's progress"
+              className="rounded-md bg-slate-700 px-2 py-1 text-xs text-slate-300 cursor-pointer hover:bg-slate-600"
+            >
+              Reset
+            </button>
+          )}
           <span className="text-slate-400">
             {now != null &&
               `Next grid in ${formatCountdown(msUntilNextGrid(now))}`}
           </span>
-          <button
-            onClick={handleShare}
-            disabled={attempts === 0}
-            className="rounded-md bg-emerald-600 px-3 py-1 font-semibold text-white cursor-pointer hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {shareCopied ? "Copied!" : "Share"}
-          </button>
+          {isGameOver ? (
+            <button
+              onClick={() => setShowResults(true)}
+              className="rounded-md bg-emerald-600 px-3 py-1 font-semibold text-white cursor-pointer hover:bg-emerald-700"
+            >
+              Results
+            </button>
+          ) : (
+            <button
+              onClick={handleShare}
+              disabled={attempts === 0}
+              className="rounded-md bg-emerald-600 px-3 py-1 font-semibold text-white cursor-pointer hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {shareCopied ? "Copied!" : "Share"}
+            </button>
+          )}
         </div>
       </div>
 
@@ -386,7 +397,7 @@ const SinglePlayerGame = ({ initialGrid }: { initialGrid: DailyGrid }) => {
       <div className="grid grid-cols-4 gap-1 max-w-md w-full mx-auto md:ml-122">
         <div className="bg-transparent p-4"></div>
 
-        {gridData?.cols.map((col: string, index: number) => (
+        {gridData.cols.map((col: string, index: number) => (
           <div
             key={index}
             className="bg-transparent flex items-center justify-center p-4 break-words leading-tight text-l text-center "
@@ -395,7 +406,7 @@ const SinglePlayerGame = ({ initialGrid }: { initialGrid: DailyGrid }) => {
           </div>
         ))}
 
-        {gridData?.rows.map((rowName: string, rowIndex: number) => (
+        {gridData.rows.map((rowName: string, rowIndex: number) => (
           <React.Fragment key={rowIndex}>
             <div className="bg-transparent flex items-center justify-center p-4 break-words leading-tight aspect-[2/3] text-l text-center ">
               {rowName.split(":")[1]}
@@ -403,26 +414,29 @@ const SinglePlayerGame = ({ initialGrid }: { initialGrid: DailyGrid }) => {
 
             {[0, 1, 2].map((colIndex) => {
               const cellId = rowIndex * 3 + colIndex;
-
-              const colName = gridData?.cols[colIndex] || "";
-
               const guessedMovie = gridGuesses[cellId];
+              const isShaking = shake?.cell === cellId;
 
               return (
                 <button
-                  onClick={() => handleClick(cellId, rowName, colName)}
-                  key={cellId}
-                  disabled={!!guessedMovie}
-                  className="relative cursor-pointer bg-slate-800 flex items-center justify-center p-4 break-words leading-tight aspect-[2/3] text-l"
+                  onClick={() => handleClick(cellId)}
+                  // novi key ponovo pokrece animaciju trešenja
+                  key={isShaking ? `${cellId}-${shake.key}` : cellId}
+                  onAnimationEnd={() => isShaking && setShake(null)}
+                  disabled={!!guessedMovie || isGameOver}
+                  // Prazno polje svijetli na hover (kao u multiplayeru)
+                  className={`relative cursor-pointer disabled:cursor-default flex items-center justify-center p-4 break-words leading-tight aspect-[2/3] text-l transition-colors duration-200 ${
+                    isShaking
+                      ? "animate-shake bg-red-900/70"
+                      : "bg-slate-800 enabled:hover:bg-slate-700"
+                  } ${isGameOver && !guessedMovie ? "opacity-50" : ""}`}
                 >
-                  {guessedMovie ? (
+                  {guessedMovie && (
                     <img
                       className="absolute inset-0 w-full h-full object-cover"
-                      alt={guessedMovie?.title}
-                      src={`https://image.tmdb.org/t/p/w500${guessedMovie?.poster_path}`}
+                      alt={guessedMovie.title}
+                      src={gridPosterUrl(guessedMovie.poster_path)}
                     />
-                  ) : (
-                    <></>
                   )}
                 </button>
               );
@@ -434,7 +448,58 @@ const SinglePlayerGame = ({ initialGrid }: { initialGrid: DailyGrid }) => {
       {/* Footer */}
       <Footer />
 
-      {isCellClicked ? (
+      {/* Kratka poruka (netacan film, film vec na tabli, greska) */}
+      {feedback && (
+        <div
+          role="status"
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-[60] rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-lg whitespace-nowrap"
+        >
+          {feedback}
+        </div>
+      )}
+
+      {/* Prozor sa rezultatom na kraju igre */}
+      {showResults && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
+          onClick={() => setShowResults(false)}
+        >
+          <div
+            className="animate-pop relative flex w-full max-w-sm flex-col items-center gap-3 rounded-md bg-slate-800 px-6 py-6 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-3 right-3 cursor-pointer"
+              onClick={() => setShowResults(false)}
+            >
+              X
+            </button>
+            <h2 className="text-2xl font-bold text-white">{resultTitle}</h2>
+            <p className="text-slate-300">
+              Daily grid #{gridData.number}: {solvedCount}/9 solved in{" "}
+              {attempts} {attempts === 1 ? "guess" : "guesses"}
+            </p>
+            <div className="font-mono text-2xl leading-tight">
+              {resultRows(gridGuesses).map((row, i) => (
+                <div key={i}>{row}</div>
+              ))}
+            </div>
+            <button
+              onClick={handleShare}
+              className="w-full rounded-md bg-emerald-600 px-4 py-2 font-semibold text-white cursor-pointer hover:bg-emerald-700"
+            >
+              {shareCopied ? "Copied to clipboard!" : "Share result"}
+            </button>
+            {now != null && (
+              <p className="text-sm text-slate-400">
+                Next grid in {formatCountdown(msUntilNextGrid(now))}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {isCellClicked && !isGameOver ? (
         <div
           className="fixed inset-0 flex items-center justify-center bg-white/50"
           onClick={() => handleClose()}
@@ -452,7 +517,11 @@ const SinglePlayerGame = ({ initialGrid }: { initialGrid: DailyGrid }) => {
             <p className="text-slate-400 text-xl mb-6">Enter your guess</p>
 
             {selectedMovie ? (
-              <div className="flex justify-start items-center p-2 gap-2 w-full bg-blue-500 mb-4 rounded-md">
+              <div
+                className={`flex justify-start items-center p-2 gap-2 w-full mb-4 rounded-md ${
+                  isSelectedUsed ? "bg-slate-600" : "bg-blue-500"
+                }`}
+              >
                 {selectedMovie.poster_path ? (
                   <img
                     src={`https://image.tmdb.org/t/p/w92${selectedMovie.poster_path}`}
@@ -464,7 +533,14 @@ const SinglePlayerGame = ({ initialGrid }: { initialGrid: DailyGrid }) => {
                     🎬 <span>NO PIC</span>
                   </div>
                 )}
-                <p>{selectedMovie.title}</p>
+                <div className="flex flex-col text-left">
+                  <p>{selectedMovie.title}</p>
+                  {isSelectedUsed && (
+                    <p className="text-sm font-semibold text-red-400">
+                      Already used on the board
+                    </p>
+                  )}
+                </div>
               </div>
             ) : (
               <></>
@@ -485,9 +561,7 @@ const SinglePlayerGame = ({ initialGrid }: { initialGrid: DailyGrid }) => {
                   {searchMovies.map((searchMovie) => (
                     <button
                       key={searchMovie.id}
-                      onClick={() =>
-                        handleSelectMovieFromSearch(searchMovie.id)
-                      }
+                      onClick={() => handleSelectMovieFromSearch(searchMovie)}
                       className="flex justify-start items-center p-2 gap-2 cursor-pointer border-b border-b-slate-400 w-full"
                     >
                       {searchMovie.poster_path ? (
@@ -514,17 +588,18 @@ const SinglePlayerGame = ({ initialGrid }: { initialGrid: DailyGrid }) => {
               <></>
             )}
 
+            {/* Dok server provjerava, dugme izgleda isto (bez "Checking..."),
+                a drugi klik ignorise handleChooseMovie. Film koji je vec na
+                tabli ne moze da se izabere: dugme je zatamnjeno. */}
             <button
               className={
-                selectedMovie
+                canChooseSelected
                   ? "bg-green-500 cursor-pointer text-white p-2 w-full rounded-md hover:bg-green-700"
-                  : "text-white bg-slate-400 p-2 w-full rounded-md cursor-not-allowed"
+                  : "text-white bg-slate-400 p-2 w-full rounded-md cursor-not-allowed opacity-60"
               }
-              disabled={!selectedMovie}
+              disabled={!canChooseSelected}
               onClick={() => {
-                if (selectedMovie) {
-                  handleChooseMovie(selectedMovie);
-                }
+                if (selectedMovie) handleChooseMovie(selectedMovie);
               }}
             >
               Choose

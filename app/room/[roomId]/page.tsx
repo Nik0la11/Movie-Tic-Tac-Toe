@@ -17,6 +17,7 @@ import {
   markRoomJoined,
   whenPageIsShown,
 } from "@/utils/roomSession";
+import { gridPosterUrl, preloadGridPoster } from "@/utils/poster";
 
 interface Cell {
   id: number;
@@ -565,6 +566,8 @@ const MultiPlayerGame = () => {
   };
 
   const handleSelectMovieFromSearch = (movie: Movie) => {
+    // Poster se skida odmah, da se pojavi cim server potvrdi film
+    preloadGridPoster(movie.poster_path);
     setSelectedMovie({
       id: movie.id,
       title: movie.title,
@@ -865,7 +868,7 @@ const MultiPlayerGame = () => {
                     <img
                       className="absolute inset-0 w-full h-full object-cover"
                       alt={guessedMovie?.title}
-                      src={`https://image.tmdb.org/t/p/w500${guessedMovie?.poster_path}`}
+                      src={gridPosterUrl(guessedMovie?.poster_path)}
                     />
                   ) : (
                     <></>
