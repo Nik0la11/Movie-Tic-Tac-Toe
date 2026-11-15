@@ -126,6 +126,17 @@ const MultiPlayerGame = () => {
     null
   );
   const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Popup "<film> is wrong" za igraca koji je pogodio pogresan film
+  const [wrongGuess, setWrongGuess] = useState<string | null>(null);
+  const wrongGuessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+  // Moj film koji server upravo provjerava (polje + naziv). Server za netacan
+  // film ne salje naziv (protivnik ne treba da vidi sta sam pokusao), pa ga
+  // pamtimo ovdje da bismo ga prikazali u popupu.
+  const pendingGuessRef = useRef<{ cellIndex: number; title: string } | null>(
+    null
+  );
   // Preostalo vrijeme od servera + lokalni trenutak kad je stiglo
   const [turnTimer, setTurnTimer] = useState<
     (Omit<TurnTimer, "turn"> & { syncedAt: number }) | null
@@ -317,6 +328,23 @@ const MultiPlayerGame = () => {
     socket.on(
       "receive_move",
       ({ cellIndex, isCorrect, movie, claimedBy, nextTurn, timer }) => {
+        // Da li je ovo odgovor na moj potez (samo igrac na potezu salje film)
+        const myGuess =
+          pendingGuessRef.current?.cellIndex === cellIndex
+            ? pendingGuessRef.current
+            : null;
+        pendingGuessRef.current = null;
+
+        if (myGuess && !isCorrect) {
+          setWrongGuess(`${myGuess.title} is wrong`);
+          if (wrongGuessTimerRef.current)
+            clearTimeout(wrongGuessTimerRef.current);
+          wrongGuessTimerRef.current = setTimeout(
+            () => setWrongGuess(null),
+            2500
+          );
+        }
+
         if (isCorrect) {
           setGridGuesses((prev) => ({
             ...prev,
@@ -369,6 +397,7 @@ const MultiPlayerGame = () => {
     );
 
     socket.on("move_rejected", ({ reason }: { reason: string }) => {
+      pendingGuessRef.current = null;
       setMoveError(reason);
       setTimeout(() => setMoveError(null), 3000);
     });
@@ -377,6 +406,7 @@ const MultiPlayerGame = () => {
       stopWaiting();
       clearTimeout(slowTimer);
       if (popupTimerRef.current) clearTimeout(popupTimerRef.current);
+      if (wrongGuessTimerRef.current) clearTimeout(wrongGuessTimerRef.current);
       socket.removeAllListeners();
       socket.disconnect();
     };
@@ -580,6 +610,7 @@ const MultiPlayerGame = () => {
   const handleChooseMovie = (movie: Movie) => {
     if (!socketRef.current || clickedCell === null) return;
 
+    pendingGuessRef.current = { cellIndex: clickedCell, title: movie.title };
     socketRef.current.emit("make_move", {
       cellIndex: clickedCell,
       movieId: movie.id,
@@ -917,6 +948,16 @@ const MultiPlayerGame = () => {
               : "Opponent disconnected. The game ends if they don't return in 10s."}
           </p>
         )
+      )}
+
+      {/* Pogresan film: vidi ga samo igrac koji je pogadjao */}
+      {wrongGuess && (
+        <div
+          role="status"
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-lg whitespace-nowrap"
+        >
+          {wrongGuess}
+        </div>
       )}
 
       {moveError && (
