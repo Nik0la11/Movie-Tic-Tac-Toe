@@ -80,8 +80,10 @@ Stvari koje nisu hitne, ali ih treba imati u vidu.
 
 16. ~~**Zaključati `/api/movies`.**~~ **Urađeno.** Umesto otvorenog proxyja
     postoje samo `/api/movies/search?query=...` i `/api/movies/[id]`.
-17. **Rate limiting** na socket događaje (`join_room`, `make_move`) i API rute,
-    da niko skriptom ne pravi hiljade soba ili ne troši TMDB ključ.
+17. **Rate limiting** — ~~socket događaji (`join_room`, `make_move`)~~
+    **urađeno** (po IP adresi, `RATE_LIMITS` u `server/server.js`). Ostaju API
+    rute na Vercelu (`/api/movies/search`, `/api/check`), da niko skriptom ne
+    troši TMDB ključ.
 18. **Automatski testovi servera** u projektu (`server/tests/`, `npm run test:server`):
     tajmer, serija, nerešeno, napuštanje igre.
 19. **Brže otkrivanje izlaska.** Detalji su u sledećoj sekciji.

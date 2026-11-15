@@ -29,6 +29,61 @@ const ABANDON_MS = 10 * 1000;
 // poruku "This game has ended" umjesto u novu praznu sobu
 const ENDED_ROOM_MEMORY_MS = 5 * 60 * 1000;
 
+// ---------------------------------------------------------------------------
+// Rate limiting
+// ---------------------------------------------------------------------------
+// Ogranicenja su po IP adresi (ne po socketu), jer skripta moze lako da
+// otvori novi socket, a mnogo teze da promijeni IP. Brojevi su dovoljno
+// veliki da ih normalan igrac nikad ne dostigne.
+const RATE_LIMITS = {
+  // Ulazak u sobu (novi link, refresh, ponovno spajanje)
+  join: { max: 30, windowMs: 60 * 1000 },
+  // Pravljenje nove sobe - svaka soba drzi grid i stanje u memoriji
+  createRoom: { max: 15, windowMs: 10 * 60 * 1000 },
+  // Potezi - svaki potez je jedan poziv TMDB-u
+  move: { max: 30, windowMs: 60 * 1000 },
+};
+
+// kljuc "vrsta:ip" -> { count, resetAt }
+const rateBuckets = new Map();
+
+// Vraca true ako je akcija dozvoljena i odmah je broji.
+// Fiksni prozor: prvih `max` akcija u `windowMs` prolazi, ostale se odbijaju
+// dok prozor ne istekne.
+const takeRateLimit = (kind, ip) => {
+  const { max, windowMs } = RATE_LIMITS[kind];
+  const key = `${kind}:${ip}`;
+  const now = Date.now();
+  let bucket = rateBuckets.get(key);
+
+  if (!bucket || bucket.resetAt <= now) {
+    bucket = { count: 0, resetAt: now + windowMs };
+    rateBuckets.set(key, bucket);
+  }
+
+  if (bucket.count >= max) return false;
+  bucket.count += 1;
+  return true;
+};
+
+// Brisanje isteklih brojaca, da Map ne raste beskonacno
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, bucket] of rateBuckets) {
+    if (bucket.resetAt <= now) rateBuckets.delete(key);
+  }
+}, 60 * 1000).unref();
+
+// Na Renderu server stoji iza proxyja, pa je prava adresa igraca prva u
+// x-forwarded-for zaglavlju. Lokalno tog zaglavlja nema.
+const getClientIp = (socket) => {
+  const forwarded = socket.handshake.headers["x-forwarded-for"];
+  if (typeof forwarded === "string" && forwarded) {
+    return forwarded.split(",")[0].trim();
+  }
+  return socket.handshake.address;
+};
+
 const server = http.createServer();
 
 const io = new Server(server, {
@@ -443,6 +498,7 @@ const leaveSeat = (socket) => {
 
 io.on("connection", (socket) => {
   console.log(`Korisnik povezan: ${socket.id}`);
+  const clientIp = getClientIp(socket);
 
   socket.on("join_room", ({ roomID, playerId, settings } = {}) => {
     if (
@@ -454,6 +510,12 @@ io.on("connection", (socket) => {
       playerId.length > 64
     ) {
       socket.emit("room_error", "Invalid room link");
+      return;
+    }
+
+    if (!takeRateLimit("join", clientIp)) {
+      console.log(`Rate limit (join_room): ${clientIp}`);
+      socket.emit("room_error", "Too many attempts, try again in a minute");
       return;
     }
 
@@ -470,6 +532,14 @@ io.on("connection", (socket) => {
 
     // Sobu pravi prvi igrac (kreator), pa se uzimaju njegova podesavanja
     if (!gameStates[roomID]) {
+      if (!takeRateLimit("createRoom", clientIp)) {
+        console.log(`Rate limit (nova soba): ${clientIp}`);
+        socket.emit(
+          "room_error",
+          "Too many new games, try again in a few minutes"
+        );
+        return;
+      }
       gameStates[roomID] = createGameState(settings);
     }
 
@@ -574,6 +644,11 @@ io.on("connection", (socket) => {
     if (gameState.board[cellIndex]) return reject("Cell is already taken");
     if (!Number.isInteger(movieId) || movieId <= 0)
       return reject("Invalid movie");
+
+    // Broji se tek ovdje, kad potez stvarno ide na TMDB. Odbijeni potezi
+    // (nije tvoj red, polje zauzeto...) ne trose TMDB, pa se ni ne broje.
+    if (!takeRateLimit("move", clientIp))
+      return reject("Too many moves, slow down");
 
     // Zakljucaj potez dok cekamo TMDB, da isti igrac ne posalje dva poteza
     gameState.pendingMove = true;
