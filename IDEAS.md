@@ -66,9 +66,9 @@ Stvari koje nisu hitne, ali ih treba imati u vidu.
 
 ## Unapređenja postojećeg
 
-12. **Debounce pretrage.** API se sada zove na svako slovo, a odgovori mogu da
-    stignu pogrešnim redom. Treba ~300ms kašnjenja i odbacivanje zastarelih
-    odgovora (AbortController).
+12. ~~**Debounce pretrage.**~~ **Urađeno.** Hook `utils/useMovieSearch.ts`:
+    300ms kašnjenja, AbortController prekida stari zahtev, "Searching..." dok
+    se čeka.
 13. **Prozor za pretragu na malim telefonima.** Ima fiksnu širinu `w-96`
     (384px), a mnogi telefoni su široki 360px, pa izlazi van ekrana. Promeniti
     u `w-full max-w-sm mx-4`.

@@ -1,5 +1,6 @@
 "use client";
 
+import { useMovieSearch } from "@/utils/useMovieSearch";
 import React, { useEffect, useRef, useState } from "react";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
@@ -95,7 +96,7 @@ const SinglePlayerGame = ({ initialGrid }: { initialGrid: DailyGrid }) => {
   const [isCellClicked, setIsCellClicked] = useState(false);
   const [clickedCell, setClickedCell] = useState<number | null>(null);
   const [searchValue, setSearchValue] = useState("");
-  const [searchMovies, setSearchMovies] = useState<Movie[]>([]);
+  const { movies: searchMovies, isSearching } = useMovieSearch(searchValue);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   // Server provjerava film (dugme "Choose" je zakljucano)
   const [checking, setChecking] = useState(false);
@@ -170,20 +171,6 @@ const SinglePlayerGame = ({ initialGrid }: { initialGrid: DailyGrid }) => {
       saveProgress(gridData, gridGuesses, attempts);
     }
   }, [gridData, gridGuesses, attempts, progressDate]);
-
-  useEffect(() => {
-    const fetchMovies = async () => {
-      if (searchValue.trim().length < 2) return;
-
-      const res = await fetch(
-        `/api/movies/search?query=${encodeURIComponent(searchValue.trim())}`
-      );
-      const data = await res.json();
-      setSearchMovies(data.results ?? []);
-    };
-
-    fetchMovies();
-  }, [searchValue]);
 
   useEffect(
     () => () => {
@@ -581,7 +568,7 @@ const SinglePlayerGame = ({ initialGrid }: { initialGrid: DailyGrid }) => {
                 </div>
               ) : (
                 <div className="flex justify-center items-center p-2 border border-slate-400 w-full text-slate-400 mb-4 rounded-md">
-                  <p>No results found.</p>
+                  <p>{isSearching ? "Searching..." : "No results found."}</p>
                 </div>
               )
             ) : (
