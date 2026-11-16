@@ -18,6 +18,15 @@ Stvari koje nisu hitne, ali ih treba imati u vidu.
   - Rešenje: mala oznaka "director" ispod imena kad je kolona `director:` u
     `app/room/[roomId]/page.tsx` i `app/singleplayer/page.tsx`. Server se ne
     menja.
+- **Singleplayer: igrač može sam sebi da blokira grid.** Dnevni grid je
+  garantovano rešiv sa 9 različitih filmova (`hasDistinctSolution` u
+  `utils/tmdb.ts`), ali igrač svojim izborom može da potroši jedini film
+  drugog polja.
+  - Primer: *Catch Me If You Can* upisan u Crime × Tom Hanks, a to je jedini
+    film (u bazi) za Crime × Spielberg.
+  - Moguće rešenje: tražiti i da svako polje ima bar 2–3 moguća filma (problem
+    postaje redak). Potpuna garancija je prestroga, a upozorenje u igri
+    otkriva odgovore.
 
 ## Igra
 
